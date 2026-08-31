@@ -1,14 +1,40 @@
+import os
+import sys
+from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from .database import engine, get_db
-from .models import Base, User, UserRole
-from .auth import get_password_hash, verify_password, create_access_token, get_current_active_user, get_current_moderator, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
+
+if __package__ in (None, ""):
+    project_root = Path(__file__).resolve().parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
+try:
+    if __package__:
+        from .database import engine, get_db
+        from .models import Base, User, UserRole
+        from .auth import get_password_hash, verify_password, create_access_token, get_current_active_user, get_current_moderator, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
+    else:
+        from backend.database import engine, get_db
+        from backend.models import Base, User, UserRole
+        from backend.auth import get_password_hash, verify_password, create_access_token, get_current_active_user, get_current_moderator, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
+except ImportError:  # pragma: no cover - supports direct module execution in local dev
+    from backend.database import engine, get_db
+    from backend.models import Base, User, UserRole
+    from backend.auth import get_password_hash, verify_password, create_access_token, get_current_active_user, get_current_moderator, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
+
 import jwt
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import timedelta
+
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+    if origin.strip()
+]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,7 +47,7 @@ app = FastAPI(title="FlavorDex API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -78,7 +104,11 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
     }
 
 from sqlalchemy import func
-from .models import Ingredient, Recipe, RecipeIngredient
+
+try:
+    from .models import Ingredient, Recipe, RecipeIngredient
+except ImportError:  # pragma: no cover - direct module execution fallback
+    from models import Ingredient, Recipe, RecipeIngredient
 
 @app.get("/admin/stats")
 async def get_admin_stats(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_moderator)):
@@ -126,7 +156,14 @@ async def get_admin_recipes(db: AsyncSession = Depends(get_db), current_user: Us
     } for r in recs]
 from pydantic import BaseModel
 from fastapi import BackgroundTasks
-from .scraper import process_recipe_url
+
+try:
+    if __package__:
+        from .scraper import process_recipe_url
+    else:
+        from backend.scraper import process_recipe_url
+except ImportError:  # pragma: no cover - direct module execution fallback
+    from backend.scraper import process_recipe_url
 
 class RecipeSubmitRequest(BaseModel):
     url: str
@@ -176,7 +213,10 @@ async def get_user_discovered_recipes(
         ]
     } for r in recs]
 
-from .models import UserInventory, UserActiveGoal
+try:
+    from .models import UserInventory, UserActiveGoal
+except ImportError:  # pragma: no cover - direct module execution fallback
+    from models import UserInventory, UserActiveGoal
 import random
 
 @app.get("/ingredients")
@@ -225,7 +265,13 @@ async def get_all_recipes(
         except Exception:
             pass
 
-    from .models import UserUnlockedRecipe, UserInventory
+    try:
+        if __package__:
+            from .models import UserUnlockedRecipe, UserInventory
+        else:
+            from backend.models import UserUnlockedRecipe, UserInventory
+    except ImportError:  # pragma: no cover - direct module execution fallback
+        from backend.models import UserUnlockedRecipe, UserInventory
     unlocked_recipe_ids = set()
     user_inventory_ing_ids = set()
     if current_user_id:
@@ -514,7 +560,13 @@ async def get_user_stats(db: AsyncSession = Depends(get_db), current_user: User 
         "streak": 0
     }
 
-from .models import Anomaly, AnomalyStatus
+try:
+    if __package__:
+        from .models import Anomaly, AnomalyStatus
+    else:
+        from backend.models import Anomaly, AnomalyStatus
+except ImportError:  # pragma: no cover - direct module execution fallback
+    from backend.models import Anomaly, AnomalyStatus
 
 class AnomalySubmitRequest(BaseModel):
     name: str
@@ -693,7 +745,13 @@ async def analyze_flavor_pairing(request: FlavorPairingRequest):
 # ==========================================
 # 🕷️ AUTOMATED WEB SPIDER / CRAWLER ENDPOINTS
 # ==========================================
-from .crawler import spider_instance
+try:
+    if __package__:
+        from .crawler import spider_instance
+    else:
+        from backend.crawler import spider_instance
+except ImportError:  # pragma: no cover - direct module execution fallback
+    from backend.crawler import spider_instance
 
 class CrawlerStartRequest(BaseModel):
     limit: Optional[int] = 20

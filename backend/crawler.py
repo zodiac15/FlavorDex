@@ -8,6 +8,8 @@ import asyncio
 import logging
 import re
 import random
+import sys
+from pathlib import Path
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 
@@ -18,15 +20,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select, func
 
+if __package__ in (None, ""):
+    project_root = Path(__file__).resolve().parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
 try:
-    from .models import Recipe, Ingredient, RecipeIngredient, Anomaly, AnomalyStatus, RarityTier
-    from .database import engine
+    if __package__:
+        from .models import Recipe, Ingredient, RecipeIngredient, Anomaly, AnomalyStatus, RarityTier
+        from .database import engine
+    else:
+        from backend.models import Recipe, Ingredient, RecipeIngredient, Anomaly, AnomalyStatus, RarityTier
+        from backend.database import engine
 except ImportError:
-    import sys
-    from pathlib import Path
     sys.path.append(str(Path(__file__).parent))
-    from models import Recipe, Ingredient, RecipeIngredient, Anomaly, AnomalyStatus, RarityTier
-    from database import engine
+    from backend.models import Recipe, Ingredient, RecipeIngredient, Anomaly, AnomalyStatus, RarityTier
+    from backend.database import engine
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("flavordex.crawler")

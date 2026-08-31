@@ -1,0 +1,31 @@
+# Git and editor files
+.git
+.gitignore
+.vscode
+.idea
+
+# Python
+backend/.venv
+backend/__pycache__
+backend/*.pyc
+backend/*.pyo
+backend/*.pyd
+backend/.pytest_cache
+backend/.mypy_cache
+backend/.ruff_cache
+
+# Node
+frontend/node_modules
+frontend/.next
+frontend/out
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# Local data and temp files
+**/.DS_Store
+**/*.log
+**/*.tmp
+**/*.temp
+*flavordex.db

@@ -2,12 +2,26 @@ import asyncio
 import logging
 import re
 import json
+import sys
+from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
 from recipe_scrapers import scrape_me
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from .models import Recipe, Ingredient, RecipeIngredient, UserInventory, User, RarityTier, Anomaly, AnomalyStatus
+
+if __package__ in (None, ""):
+    project_root = Path(__file__).resolve().parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
+try:
+    if __package__:
+        from .models import Recipe, Ingredient, RecipeIngredient, UserInventory, User, RarityTier, Anomaly, AnomalyStatus
+    else:
+        from backend.models import Recipe, Ingredient, RecipeIngredient, UserInventory, User, RarityTier, Anomaly, AnomalyStatus
+except ImportError:  # pragma: no cover - direct module execution fallback
+    from backend.models import Recipe, Ingredient, RecipeIngredient, UserInventory, User, RarityTier, Anomaly, AnomalyStatus
 
 logger = logging.getLogger(__name__)
 

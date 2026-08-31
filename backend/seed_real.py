@@ -1,11 +1,19 @@
 import asyncio
 import aiohttp
 import random
+import sys
+from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
-from models import Ingredient, Recipe, RecipeIngredient, RarityTier, Base
-from database import engine
+
+if __package__ in (None, ""):
+    project_root = Path(__file__).resolve().parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
+from backend.models import Ingredient, Recipe, RecipeIngredient, RarityTier, Base
+from backend.database import engine
 
 async def get_all_ingredients(session: aiohttp.ClientSession):
     async with session.get('https://www.themealdb.com/api/json/v1/1/list.php?i=list') as resp:

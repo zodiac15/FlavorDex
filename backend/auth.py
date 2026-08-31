@@ -1,5 +1,7 @@
 import os
+import sys
 import secrets
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from passlib.context import CryptContext
@@ -8,8 +10,22 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from .database import get_db
-from .models import User, UserRole
+
+if __package__ in (None, ""):
+    project_root = Path(__file__).resolve().parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
+try:
+    if __package__:
+        from .database import get_db
+        from .models import User, UserRole
+    else:
+        from backend.database import get_db
+        from backend.models import User, UserRole
+except ImportError:  # pragma: no cover - supports direct module execution in local dev
+    from backend.database import get_db
+    from backend.models import User, UserRole
 
 # Fixed secret key for local development so tokens survive server restarts
 SECRET_KEY = os.getenv("SECRET_KEY", "b33671cd24d4b2e88a3b839ee851b22dbf9e9cfb591f42289c065f4d1e2e4242")
