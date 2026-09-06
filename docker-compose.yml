@@ -1,8 +1,6 @@
 services:
   backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: ghcr.io/zodiac15/flavordex-backend:latest
     container_name: flavordex-backend
     ports:
       - "8000:8000"
@@ -15,8 +13,7 @@ services:
     command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
-    build:
-      context: ./frontend
+    image: ghcr.io/zodiac15/flavordex-frontend:latest
     container_name: flavordex-frontend
     ports:
       - "3000:3000"
