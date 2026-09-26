@@ -1,27 +1,23 @@
 import asyncio
+import ipaddress
 import logging
 import re
 import json
-import sys
-from pathlib import Path
-import requests
+import socket
+from urllib.parse import urljoin, urlsplit, urlunsplit
+import aiohttp
 from bs4 import BeautifulSoup
-from recipe_scrapers import scrape_me
+from recipe_scrapers import scrape_html
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-
-if __package__ in (None, ""):
-    project_root = Path(__file__).resolve().parent.parent
-    if str(project_root) not in sys.path:
-        sys.path.insert(0, str(project_root))
+from sqlalchemy import select, func
 
 try:
     if __package__:
-        from .models import Recipe, Ingredient, RecipeIngredient, UserInventory, User, RarityTier, Anomaly, AnomalyStatus
+        from .models import Recipe, Ingredient, RecipeIngredient, UserInventory, User, UserUnlockedRecipe, RarityTier, Anomaly, AnomalyStatus
     else:
-        from backend.models import Recipe, Ingredient, RecipeIngredient, UserInventory, User, RarityTier, Anomaly, AnomalyStatus
+        from backend.models import Recipe, Ingredient, RecipeIngredient, UserInventory, User, UserUnlockedRecipe, RarityTier, Anomaly, AnomalyStatus
 except ImportError:  # pragma: no cover - direct module execution fallback
-    from backend.models import Recipe, Ingredient, RecipeIngredient, UserInventory, User, RarityTier, Anomaly, AnomalyStatus
+    from backend.models import Recipe, Ingredient, RecipeIngredient, UserInventory, User, UserUnlockedRecipe, RarityTier, Anomaly, AnomalyStatus
 
 logger = logging.getLogger(__name__)
 
@@ -65,73 +61,214 @@ def guess_ingredient_category(name: str) -> str:
         return "Pantry"
     return "Miscellaneous"
 
-def scrape_generic_fallback(url: str):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-    resp = requests.get(url, headers=headers, timeout=10)
-    resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
-    
-    # Try Schema.org JSON-LD
-    scripts = soup.find_all("script", type="application/ld+json")
-    for script in scripts:
+MAX_RECIPE_PAGE_BYTES = 5 * 1024 * 1024
+MAX_RECIPE_REDIRECTS = 5
+RECIPE_FETCH_TIMEOUT = aiohttp.ClientTimeout(total=15, connect=5, sock_read=10)
+
+
+class UnsafeRecipeURL(ValueError):
+    pass
+
+
+class RecipeFetchError(RuntimeError):
+    pass
+
+
+class RecipeParseError(ValueError):
+    pass
+
+
+def validate_recipe_url(url: str) -> str:
+    if len(url) > 2048:
+        raise UnsafeRecipeURL("Recipe URL exceeds 2048 characters")
+
+    try:
+        parsed = urlsplit(url.strip())
+        port = parsed.port
+    except ValueError as exc:
+        raise UnsafeRecipeURL("Recipe URL is invalid") from exc
+
+    if parsed.scheme.lower() not in {"http", "https"} or not parsed.hostname:
+        raise UnsafeRecipeURL("Recipe URL must use HTTP or HTTPS and include a host")
+    if parsed.username or parsed.password:
+        raise UnsafeRecipeURL("Recipe URL must not contain credentials")
+    expected_port = 443 if parsed.scheme.lower() == "https" else 80
+    if port is not None and port != expected_port:
+        raise UnsafeRecipeURL("Recipe URL must use the standard HTTP or HTTPS port")
+
+    hostname = parsed.hostname.lower().rstrip(".")
+    if hostname in {"localhost", "localhost.localdomain"} or hostname.endswith(
+        (".localhost", ".local", ".internal", ".test")
+    ):
+        raise UnsafeRecipeURL("Recipe URL host must be publicly routable")
+
+    try:
+        address = ipaddress.ip_address(hostname)
+    except ValueError:
+        pass
+    else:
+        if not address.is_global:
+            raise UnsafeRecipeURL("Recipe URL host must be publicly routable")
+
+    return urlunsplit(parsed._replace(fragment=""))
+
+
+class PublicOnlyResolver(aiohttp.abc.AbstractResolver):
+    async def resolve(self, host, port=0, family=socket.AF_INET):
         try:
-            if not script.string:
-                continue
-            data = json.loads(script.string)
-            items = data if isinstance(data, list) else data.get("@graph", [data])
-            for item in items:
-                if isinstance(item, dict) and item.get("@type") in ["Recipe", "https://schema.org/Recipe"]:
-                    title = item.get("name")
-                    image = item.get("image")
-                    if isinstance(image, list):
-                        image = image[0]
-                    elif isinstance(image, dict):
-                        image = image.get("url")
-                    ingredients = item.get("recipeIngredient", [])
-                    instructions_raw = item.get("recipeInstructions", [])
-                    instructions = ""
-                    if isinstance(instructions_raw, list):
-                        instructions = "\n".join(
-                            step.get("text", str(step)) if isinstance(step, dict) else str(step)
-                            for step in instructions_raw
-                        )
-                    elif isinstance(instructions_raw, str):
-                        instructions = instructions_raw
-                    if title and ingredients:
-                        return {
-                            "title": title,
-                            "image": image,
-                            "ingredients": ingredients,
-                            "instructions": instructions
-                        }
-        except Exception:
+            address = ipaddress.ip_address(host)
+            resolved = [(socket.AF_INET6 if address.version == 6 else socket.AF_INET, str(address))]
+        except ValueError:
+            loop = asyncio.get_running_loop()
+            infos = await loop.getaddrinfo(host, port, family=family, type=socket.SOCK_STREAM)
+            resolved = list(dict.fromkeys((info[0], info[4][0]) for info in infos))
+
+        if not resolved or any(not ipaddress.ip_address(address).is_global for _, address in resolved):
+            raise OSError("Recipe URL resolved to a non-public address")
+
+        return [
+            {
+                "hostname": host,
+                "host": address,
+                "port": port,
+                "family": address_family,
+                "proto": 0,
+                "flags": 0,
+            }
+            for address_family, address in resolved
+        ]
+
+    async def close(self):
+        return None
+
+
+async def fetch_recipe_page(url: str) -> tuple[str, str]:
+    current_url = validate_recipe_url(url)
+    connector = aiohttp.TCPConnector(
+        resolver=PublicOnlyResolver(),
+        use_dns_cache=False,
+    )
+    headers = {"User-Agent": "FlavorDex recipe importer/1.0"}
+    async with aiohttp.ClientSession(
+        connector=connector,
+        timeout=RECIPE_FETCH_TIMEOUT,
+        trust_env=False,
+        headers=headers,
+    ) as session:
+        for redirect_count in range(MAX_RECIPE_REDIRECTS + 1):
+            current_url = validate_recipe_url(current_url)
+            try:
+                async with session.get(current_url, allow_redirects=False) as response:
+                    if response.status in {301, 302, 303, 307, 308}:
+                        location = response.headers.get("Location")
+                        if not location or redirect_count == MAX_RECIPE_REDIRECTS:
+                            raise RecipeFetchError("Recipe source redirected too many times")
+                        current_url = urljoin(current_url, location)
+                        continue
+
+                    response.raise_for_status()
+                    content_type = response.headers.get("Content-Type", "").lower()
+                    if content_type and not (
+                        content_type.startswith("text/html")
+                        or content_type.startswith("application/xhtml+xml")
+                    ):
+                        raise RecipeFetchError("Recipe source did not return an HTML page")
+
+                    content_length = response.headers.get("Content-Length")
+                    if content_length and int(content_length) > MAX_RECIPE_PAGE_BYTES:
+                        raise RecipeFetchError("Recipe source page exceeds the 5 MB limit")
+
+                    body = bytearray()
+                    async for chunk in response.content.iter_chunked(64 * 1024):
+                        body.extend(chunk)
+                        if len(body) > MAX_RECIPE_PAGE_BYTES:
+                            raise RecipeFetchError("Recipe source page exceeds the 5 MB limit")
+
+                    try:
+                        encoding = response.charset or "utf-8"
+                        html = bytes(body).decode(encoding, errors="replace")
+                    except LookupError:
+                        html = bytes(body).decode("utf-8", errors="replace")
+                    return html, str(response.url)
+            except UnsafeRecipeURL:
+                raise
+            except RecipeFetchError:
+                raise
+            except (aiohttp.ClientError, asyncio.TimeoutError, OSError, ValueError) as exc:
+                raise RecipeFetchError("Could not fetch recipe source") from exc
+
+    raise RecipeFetchError("Could not fetch recipe source")
+
+
+def _recipe_objects(data):
+    if isinstance(data, list):
+        for item in data:
+            yield from _recipe_objects(item)
+    elif isinstance(data, dict):
+        if "@graph" in data:
+            yield from _recipe_objects(data["@graph"])
+        else:
+            yield data
+
+
+def _instruction_text(value) -> str:
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        return _instruction_text(value.get("text") or value.get("itemListElement") or "")
+    if isinstance(value, list):
+        return "\n".join(filter(None, (_instruction_text(item) for item in value)))
+    return ""
+
+
+def scrape_generic_fallback(html: str, source_url: str):
+    soup = BeautifulSoup(html, "html.parser")
+    for script in soup.find_all("script", type="application/ld+json"):
+        try:
+            data = json.loads(script.string or script.get_text())
+        except (json.JSONDecodeError, TypeError):
             continue
-            
-    # Fallback to OpenGraph and meta
-    title_tag = soup.find("meta", property="og:title") or soup.find("title")
-    title = title_tag.get("content", title_tag.text) if title_tag else "Imported Web Recipe"
-    img_tag = soup.find("meta", property="og:image")
-    image = img_tag.get("content") if img_tag else None
-    
-    return {
-        "title": title.split(" - ")[0].split(" | ")[0].strip(),
-        "image": image,
-        "ingredients": ["1 portion Assorted Fresh Ingredients"],
-        "instructions": "Follow cooking steps from source URL: " + url
-    }
+        for item in _recipe_objects(data):
+            item_type = item.get("@type", [])
+            if not isinstance(item_type, list):
+                item_type = [item_type]
+            if not any(str(value).rstrip("/").split("/")[-1] == "Recipe" for value in item_type):
+                continue
+
+            title = item.get("name")
+            ingredients = item.get("recipeIngredient") or []
+            if not isinstance(ingredients, list):
+                continue
+            image = item.get("image")
+            if isinstance(image, list):
+                image = image[0] if image else None
+            if isinstance(image, dict):
+                image = image.get("url")
+            if isinstance(image, str):
+                image = urljoin(source_url, image)
+
+            instructions = _instruction_text(item.get("recipeInstructions") or "")
+            if title and ingredients:
+                return {
+                    "title": str(title).strip(),
+                    "image": image if isinstance(image, str) else None,
+                    "ingredients": [str(value) for value in ingredients if str(value).strip()],
+                    "instructions": instructions,
+                }
+
+    raise RecipeParseError("No recipe details found on this page")
 
 async def process_recipe_url(url: str, user_id: int, db: AsyncSession):
     try:
-        # Step 1: Attempt scraping
-        title = None
-        image_url = None
-        ingredients_list = []
-        instructions = ""
-        
+        safe_url = validate_recipe_url(url)
+        html, source_url = await fetch_recipe_page(safe_url)
         try:
-            scraper = await asyncio.to_thread(scrape_me, url)
+            scraper = await asyncio.to_thread(
+                scrape_html,
+                html,
+                source_url,
+                supported_only=False,
+            )
             title = scraper.title()
             image_url = scraper.image()
             ingredients_list = scraper.ingredients()
@@ -139,19 +276,40 @@ async def process_recipe_url(url: str, user_id: int, db: AsyncSession):
                 instructions = scraper.instructions()
             except Exception:
                 instructions = ""
-        except Exception as scrape_err:
-            logger.warning(f"recipe_scrapers failed on {url}: {scrape_err}. Trying generic fallback...")
-            fallback = await asyncio.to_thread(scrape_generic_fallback, url)
+            if not title or not ingredients_list:
+                raise RecipeParseError("Recipe parser returned incomplete details")
+        except Exception:
+            logger.info(
+                "Recipe parser did not extract structured data from %s; trying JSON-LD",
+                urlsplit(source_url).hostname,
+            )
+            fallback = await asyncio.to_thread(scrape_generic_fallback, html, source_url)
             title = fallback["title"]
             image_url = fallback["image"]
             ingredients_list = fallback["ingredients"]
             instructions = fallback["instructions"]
 
-        if not title:
-            raise ValueError(f"Could not extract recipe details from {url}")
+        if not title or not ingredients_list:
+            raise RecipeParseError("No recipe details found on this page")
 
-        # Step 2: Check if recipe exists or create new
-        existing_recipe_res = await db.execute(select(Recipe).filter(Recipe.title.ilike(title)))
+        user_res = await db.execute(select(User).where(User.id == user_id).with_for_update())
+        user_obj = user_res.scalars().first()
+        if not user_obj:
+            raise ValueError("User no longer exists")
+
+        unlocked_check = await db.execute(
+            select(UserUnlockedRecipe.id).filter(
+                UserUnlockedRecipe.user_id == user_id,
+                UserUnlockedRecipe.recipe_id.in_(
+                    select(Recipe.id).filter(func.lower(Recipe.title) == title.lower())
+                ),
+            )
+        )
+        is_first_unlock = unlocked_check.scalar_one_or_none() is None
+
+        existing_recipe_res = await db.execute(
+            select(Recipe).filter(func.lower(Recipe.title) == title.lower())
+        )
         recipe = existing_recipe_res.scalars().first()
         
         difficulty = min(5, max(1, len(ingredients_list) // 3)) if ingredients_list else 3
@@ -167,17 +325,18 @@ async def process_recipe_url(url: str, user_id: int, db: AsyncSession):
             )
             db.add(recipe)
             await db.flush()
-        elif not recipe.discovered_by_user_id:
-            recipe.discovered_by_user_id = user_id
             
-        # Step 3: Fetch existing DB ingredients for matching
         all_db_ings_res = await db.execute(select(Ingredient))
         all_db_ings = all_db_ings_res.scalars().all()
         db_ings_by_name = {ing.name.lower(): ing for ing in all_db_ings}
         
-        # User inventory lookup
         user_inv_res = await db.execute(select(UserInventory).filter(UserInventory.user_id == user_id))
         user_inv_map = {item.ingredient_id: item for item in user_inv_res.scalars().all()}
+        recipe_link_res = await db.execute(
+            select(RecipeIngredient.ingredient_id).filter(RecipeIngredient.recipe_id == recipe.id)
+        )
+        linked_ingredient_ids = set(recipe_link_res.scalars().all())
+        seen_ingredient_ids: set[int] = set()
         
         unlocked_ingredients = []
         
@@ -215,32 +374,30 @@ async def process_recipe_url(url: str, user_id: int, db: AsyncSession):
                 await db.flush()
                 db_ings_by_name[clean_name.lower()] = matched_ing
             
-            # Ensure RecipeIngredient link exists
-            link_check = await db.execute(
-                select(RecipeIngredient).filter(
-                    RecipeIngredient.recipe_id == recipe.id,
-                    RecipeIngredient.ingredient_id == matched_ing.id
-                )
-            )
-            if not link_check.scalars().first():
+            if matched_ing.id in seen_ingredient_ids:
+                continue
+            seen_ingredient_ids.add(matched_ing.id)
+
+            if matched_ing.id not in linked_ingredient_ids:
                 db.add(RecipeIngredient(
                     recipe_id=recipe.id,
                     ingredient_id=matched_ing.id,
                     quantity_desc=raw_ing_str[:100]
                 ))
+                linked_ingredient_ids.add(matched_ing.id)
                 
-            # CRITICAL REQUIREMENT: Unlock ingredient in user's inventory
             is_new_to_user = matched_ing.id not in user_inv_map
-            if is_new_to_user:
-                new_inv = UserInventory(
-                    user_id=user_id,
-                    ingredient_id=matched_ing.id,
-                    quantity=1
-                )
-                db.add(new_inv)
-                user_inv_map[matched_ing.id] = new_inv
-            else:
-                user_inv_map[matched_ing.id].quantity += 1
+            if is_first_unlock:
+                if is_new_to_user:
+                    new_inv = UserInventory(
+                        user_id=user_id,
+                        ingredient_id=matched_ing.id,
+                        quantity=1
+                    )
+                    db.add(new_inv)
+                    user_inv_map[matched_ing.id] = new_inv
+                else:
+                    user_inv_map[matched_ing.id].quantity += 1
                 
             unlocked_ingredients.append({
                 "id": matched_ing.id,
@@ -251,21 +408,11 @@ async def process_recipe_url(url: str, user_id: int, db: AsyncSession):
                 "is_new": is_new_to_user
             })
             
-        # Step 4: Grant XP to user and record unlocked recipe
-        from .models import UserUnlockedRecipe
-        unlocked_check = await db.execute(
-            select(UserUnlockedRecipe).filter(
-                UserUnlockedRecipe.user_id == user_id,
-                UserUnlockedRecipe.recipe_id == recipe.id
-            )
-        )
-        if not unlocked_check.scalars().first():
+        if is_first_unlock:
             db.add(UserUnlockedRecipe(user_id=user_id, recipe_id=recipe.id))
 
-        user_res = await db.execute(select(User).filter(User.id == user_id))
-        user_obj = user_res.scalars().first()
-        xp_gained = 50 + (len(unlocked_ingredients) * 15)
-        if user_obj:
+        xp_gained = 50 + (len(unlocked_ingredients) * 15) if is_first_unlock else 0
+        if is_first_unlock:
             user_obj.xp = (user_obj.xp or 0) + xp_gained
             user_obj.rank = max(user_obj.rank or 1, 1 + (user_obj.xp // 250))
             
@@ -283,11 +430,13 @@ async def process_recipe_url(url: str, user_id: int, db: AsyncSession):
             },
             "unlocked_ingredients": unlocked_ingredients,
             "xp_gained": xp_gained,
-            "message": f"Successfully scraped '{recipe.title}'! {len(unlocked_ingredients)} ingredients unlocked in your Dex!"
+            "message": (
+                f"Successfully imported '{recipe.title}'! "
+                f"{len(unlocked_ingredients)} ingredients processed in your Dex."
+            )
         }
         
     except Exception as e:
-        logger.error(f"Failed to scrape recipe from {url}: {e}", exc_info=True)
+        logger.error("Failed to import recipe from submitted URL: %s", e, exc_info=True)
         await db.rollback()
-        raise e
-
+        raise

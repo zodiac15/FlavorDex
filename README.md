@@ -95,8 +95,18 @@ pip install -r requirements.txt
 
 ```bash
 cd FlavorDex/backend
+export SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
+alembic upgrade head
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+On Windows PowerShell, set the key with:
+
+```powershell
+$env:SECRET_KEY = python -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
+Run the migration command from `backend/` before starting the API. The default local database is `backend/flavordex.db`.
 
 The API docs will be available at:
 
@@ -123,24 +133,27 @@ Then open:
 
 ## Environment and Configuration
 
-The app uses sensible defaults for local development, including:
+The app uses these local defaults:
 
 - SQLite database: `backend/flavordex.db`
 - API base URL expected by frontend: `http://localhost:8000`
-- JWT secret fallback is defined in `backend/auth.py`
+- `SECRET_KEY` is required and must contain at least 32 bytes
 
 For production or custom local setup, you can set environment variables such as:
 
 ```bash
 DATABASE_URL=sqlite+aiosqlite:///./flavordex.db
-SECRET_KEY=your-secret-key
+SECRET_KEY=<random value with at least 32 bytes>
+SQL_ECHO=false
 ```
+
+Do not use a checked-in or publicly shared secret. Docker Compose reads `SECRET_KEY` from a `.env` file and stores SQLite data in the `flavordex_data` volume.
 
 ## Core API Flows
 
 ### Authentication
 
-- `POST /register` creates a new user
+- `POST /register` creates a new user from a JSON request body
 - `POST /token` authenticates and returns a JWT
 - `GET /users/me` returns the current user profile
 
@@ -177,14 +190,16 @@ The main persisted entities include:
 - `UserInventory`
 - `UserActiveGoal`
 - `Anomaly`
+- `AnomalyVote`
 - `UserUnlockedRecipe`
 
-The schema is defined in `backend/models.py` and is created automatically during FastAPI startup for local development.
+The schema is defined in `backend/models.py`. Alembic migrations create and update database tables.
 
 ## Notes for Development
 
-- The backend creates database tables automatically on app startup using SQLAlchemy metadata.
-- The SQLite database file is intentionally part of the local workspace for easy development and testing.
+- Apply schema changes with `alembic upgrade head` from `backend/`.
+- Run backend tests from the repository root with `python -m unittest discover -s backend/tests -v`.
+- SQL statement logging is disabled by default. Set `SQL_ECHO=true` only when debugging.
 - The frontend calls the backend at `http://localhost:8000`, so both apps must be running at the same time for full functionality.
 - The project includes seed and scraper utilities for populating and discovering recipe content.
 

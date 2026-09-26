@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import List, Optional, Any
-from sqlalchemy import String, Integer, ForeignKey, DateTime, Enum, JSON, Text
+from sqlalchemy import String, Integer, ForeignKey, DateTime, Enum, JSON, Text, Index, func, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 import enum
 
@@ -76,6 +76,7 @@ class Recipe(Base):
 
 class RecipeIngredient(Base):
     __tablename__ = "recipe_ingredients"
+    __table_args__ = (Index("uq_recipe_ingredient", "recipe_id", "ingredient_id", unique=True),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     recipe_id: Mapped[int] = mapped_column(ForeignKey("recipes.id"), index=True)
@@ -88,6 +89,7 @@ class RecipeIngredient(Base):
 
 class UserInventory(Base):
     __tablename__ = "user_inventory"
+    __table_args__ = (Index("uq_user_inventory", "user_id", "ingredient_id", unique=True),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
@@ -100,6 +102,7 @@ class UserInventory(Base):
 
 class UserActiveGoal(Base):
     __tablename__ = "user_active_goals"
+    __table_args__ = (Index("uq_user_active_goal", "user_id", "recipe_id", unique=True),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
@@ -116,6 +119,14 @@ class Anomaly(Base):
     that aren't in the main Ingredients table yet.
     """
     __tablename__ = "anomalies"
+    __table_args__ = (
+        Index(
+            "uq_anomaly_submitter_name",
+            "submitter_user_id",
+            func.lower(text("scraped_name")),
+            unique=True,
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     scraped_name: Mapped[str] = mapped_column(String(100))
@@ -130,6 +141,7 @@ class Anomaly(Base):
 
 class UserUnlockedRecipe(Base):
     __tablename__ = "user_unlocked_recipes"
+    __table_args__ = (Index("uq_user_unlocked_recipe", "user_id", "recipe_id", unique=True),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
@@ -140,3 +152,13 @@ class UserUnlockedRecipe(Base):
     user: Mapped["User"] = relationship()
     recipe: Mapped["Recipe"] = relationship()
 
+
+class AnomalyVote(Base):
+    __tablename__ = "anomaly_votes"
+    __table_args__ = (Index("uq_anomaly_vote", "anomaly_id", "user_id", unique=True),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    anomaly_id: Mapped[int] = mapped_column(ForeignKey("anomalies.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    approve: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
