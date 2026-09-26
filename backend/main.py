@@ -2,10 +2,16 @@ import os
 import sys
 from pathlib import Path
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException, status, Header
+import logging
+import re
+from fastapi import FastAPI, Depends, HTTPException, status, Header, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update, cast, String, func, case, Integer, or_, and_
+from sqlalchemy.orm import selectinload
+from sqlalchemy.exc import IntegrityError
+from pydantic import AnyHttpUrl, BaseModel, Field, field_validator
+from typing import Optional, Literal
 
 if __package__ in (None, ""):
     project_root = Path(__file__).resolve().parent.parent
@@ -14,21 +20,39 @@ if __package__ in (None, ""):
 
 try:
     if __package__:
-        from .database import engine, get_db
-        from .models import Base, User, UserRole
+        from .database import get_db
+        from .models import User, UserRole, Anomaly, AnomalyStatus, AnomalyVote, UserUnlockedRecipe, UserInventory, RarityTier
         from .auth import get_password_hash, verify_password, create_access_token, get_current_active_user, get_current_moderator, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
     else:
-        from backend.database import engine, get_db
-        from backend.models import Base, User, UserRole
+        from backend.database import get_db
+        from backend.models import User, UserRole, Anomaly, AnomalyStatus, AnomalyVote, UserUnlockedRecipe, UserInventory, RarityTier
         from backend.auth import get_password_hash, verify_password, create_access_token, get_current_active_user, get_current_moderator, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
 except ImportError:  # pragma: no cover - supports direct module execution in local dev
-    from backend.database import engine, get_db
-    from backend.models import Base, User, UserRole
+    from backend.database import get_db
+    from backend.models import User, UserRole, Anomaly, AnomalyStatus, AnomalyVote, UserUnlockedRecipe, UserInventory, RarityTier
     from backend.auth import get_password_hash, verify_password, create_access_token, get_current_active_user, get_current_moderator, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
 
 import jwt
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import timedelta
+
+logger = logging.getLogger(__name__)
+
+
+async def award_xp(db: AsyncSession, user_id: int, amount: int) -> None:
+    if amount <= 0:
+        return
+    updated_xp = func.coalesce(User.xp, 0) + amount
+    updated_rank = cast(updated_xp / 250, Integer) + 1
+    await db.execute(
+        update(User)
+        .where(User.id == user_id)
+        .values(
+            xp=updated_xp,
+            rank=case((User.rank < updated_rank, updated_rank), else_=User.rank),
+        )
+        .execution_options(synchronize_session=False)
+    )
 
 allowed_origins = [
     origin.strip()
@@ -38,9 +62,6 @@ allowed_origins = [
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create tables automatically for development.
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
     yield
 
 app = FastAPI(title="FlavorDex API", lifespan=lifespan)
@@ -53,24 +74,59 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class RegisterRequest(BaseModel):
+    username: str = Field(min_length=3, max_length=50, pattern=r"^[A-Za-z0-9_.-]+$")
+    email: str = Field(min_length=3, max_length=255)
+    password: str = Field(min_length=6)
+
+    @field_validator("username", "email", mode="before")
+    @classmethod
+    def strip_text(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        normalized = value.lower()
+        if not re.fullmatch(r"[^@\s]{1,64}@[^@\s.]+(?:\.[^@\s.]+)+", normalized):
+            raise ValueError("Enter a valid email address")
+        return normalized
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_size(cls, value: str) -> str:
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError("Password must not exceed 72 UTF-8 bytes")
+        return value
+
+
 @app.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
-    username: str, 
-    email: str, 
-    password: str, 
+    request: RegisterRequest,
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(User).filter((User.username == username) | (User.email == email)))
+    result = await db.execute(
+        select(User).filter(
+            (User.username == request.username) | (User.email == request.email)
+        )
+    )
     if result.scalars().first():
-        raise HTTPException(status_code=400, detail="Username or Email already registered")
+        raise HTTPException(status_code=409, detail="Username or email already registered")
         
     new_user = User(
-        username=username,
-        email=email,
-        auth_hash=get_password_hash(password)
+        username=request.username,
+        email=request.email,
+        auth_hash=get_password_hash(request.password)
     )
     db.add(new_user)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Username or email already registered",
+        ) from exc
     return {"message": "User registered successfully"}
 
 @app.post("/token")
@@ -103,12 +159,13 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
         "rank": current_user.rank
     }
 
-from sqlalchemy import func
-
 try:
-    from .models import Ingredient, Recipe, RecipeIngredient
+    if __package__:
+        from .models import Ingredient, Recipe, RecipeIngredient, UserActiveGoal
+    else:
+        from backend.models import Ingredient, Recipe, RecipeIngredient, UserActiveGoal
 except ImportError:  # pragma: no cover - direct module execution fallback
-    from models import Ingredient, Recipe, RecipeIngredient
+    from backend.models import Ingredient, Recipe, RecipeIngredient, UserActiveGoal
 
 @app.get("/admin/stats")
 async def get_admin_stats(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_moderator)):
@@ -154,19 +211,16 @@ async def get_admin_recipes(db: AsyncSession = Depends(get_db), current_user: Us
             } for ri in r.ingredients
         ]
     } for r in recs]
-from pydantic import BaseModel
-from fastapi import BackgroundTasks
-
 try:
     if __package__:
-        from .scraper import process_recipe_url
+        from .scraper import process_recipe_url, UnsafeRecipeURL, RecipeFetchError, RecipeParseError
     else:
-        from backend.scraper import process_recipe_url
+        from backend.scraper import process_recipe_url, UnsafeRecipeURL, RecipeFetchError, RecipeParseError
 except ImportError:  # pragma: no cover - direct module execution fallback
-    from backend.scraper import process_recipe_url
+    from backend.scraper import process_recipe_url, UnsafeRecipeURL, RecipeFetchError, RecipeParseError
 
 class RecipeSubmitRequest(BaseModel):
-    url: str
+    url: AnyHttpUrl = Field(max_length=2048)
 
 @app.post("/recipes/submit")
 async def submit_recipe(
@@ -175,13 +229,24 @@ async def submit_recipe(
     current_user: User = Depends(get_current_active_user)
 ):
     try:
-        result = await process_recipe_url(request.url, current_user.id, db)
-        return result
-    except Exception as e:
+        return await process_recipe_url(str(request.url), current_user.id, db)
+    except UnsafeRecipeURL as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RecipeParseError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RecipeFetchError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except IntegrityError as exc:
         raise HTTPException(
-            status_code=400,
-            detail=f"Failed to scrape recipe from provided URL: {str(e)}"
-        )
+            status_code=409,
+            detail="Recipe import conflicted with another update. Retry the import.",
+        ) from exc
+    except Exception as exc:
+        logger.exception("Unexpected failure while importing recipe")
+        raise HTTPException(
+            status_code=500,
+            detail="Recipe import failed unexpectedly",
+        ) from exc
 
 @app.get("/users/me/discovered-recipes")
 async def get_user_discovered_recipes(
@@ -213,20 +278,11 @@ async def get_user_discovered_recipes(
         ]
     } for r in recs]
 
-try:
-    from .models import UserInventory, UserActiveGoal
-except ImportError:  # pragma: no cover - direct module execution fallback
-    from models import UserInventory, UserActiveGoal
-import random
-
 @app.get("/ingredients")
 async def get_all_ingredients(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Ingredient).order_by(Ingredient.id.desc()).limit(200))
     ings = result.scalars().all()
     return [{"id": i.id, "name": i.name, "description": i.description, "category": i.category, "rarity": i.rarity_tier.value, "origin": i.origin, "image_url": i.image_url} for i in ings]
-
-from sqlalchemy import or_, and_
-from typing import Optional
 
 @app.get("/recipes/categories")
 async def get_recipe_categories(db: AsyncSession = Depends(get_db)):
@@ -245,33 +301,26 @@ async def get_all_recipes(
     q: Optional[str] = None,
     ingredient: Optional[str] = None,
     category: Optional[str] = None,
-    difficulty: Optional[int] = None,
-    limit: int = 150,
-    offset: int = 0,
+    difficulty: Optional[int] = Query(default=None, ge=1, le=5),
+    limit: int = Query(default=150, ge=1, le=150),
+    offset: int = Query(default=0, ge=0),
     authorization: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db)
 ):
     current_user_id = None
     if authorization and authorization.startswith("Bearer "):
-        token = authorization.split(" ")[1]
+        token = authorization.split(" ", 1)[1].strip()
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            username: str = payload.get("sub")
-            if username:
-                user_res = await db.execute(select(User).filter(User.username == username))
-                u = user_res.scalars().first()
-                if u:
-                    current_user_id = u.id
-        except Exception:
-            pass
+        except jwt.InvalidTokenError:
+            payload = None
+        username = payload.get("sub") if payload else None
+        if username:
+            user_res = await db.execute(select(User).filter(User.username == username))
+            user = user_res.scalars().first()
+            if user:
+                current_user_id = user.id
 
-    try:
-        if __package__:
-            from .models import UserUnlockedRecipe, UserInventory
-        else:
-            from backend.models import UserUnlockedRecipe, UserInventory
-    except ImportError:  # pragma: no cover - direct module execution fallback
-        from backend.models import UserUnlockedRecipe, UserInventory
     unlocked_recipe_ids = set()
     user_inventory_ing_ids = set()
     if current_user_id:
@@ -309,6 +358,17 @@ async def get_all_recipes(
         
     if difficulty and difficulty > 0:
         conditions.append(Recipe.difficulty == difficulty)
+
+    if category and category.strip().lower() != "all":
+        escaped_category = (
+            category.strip()
+            .replace("\\", "\\\\")
+            .replace("%", "\\%")
+            .replace("_", "\\_")
+        )
+        conditions.append(
+            cast(Recipe.dietary_tags, String).ilike(f"%{escaped_category}%", escape="\\")
+        )
         
     if conditions:
         query = query.filter(and_(*conditions))
@@ -317,13 +377,6 @@ async def get_all_recipes(
     result = await db.execute(query)
     recs = result.scalars().all()
     
-    if category and category.lower() != "all":
-        cat_lower = category.lower()
-        recs = [
-            r for r in recs 
-            if r.dietary_tags and any(cat_lower in str(tag).lower() for tag in r.dietary_tags)
-        ]
-        
     formatted_recipes = []
     for r in recs:
         is_unlocked = bool(
@@ -560,21 +613,26 @@ async def get_user_stats(db: AsyncSession = Depends(get_db), current_user: User 
         "streak": 0
     }
 
-try:
-    if __package__:
-        from .models import Anomaly, AnomalyStatus
-    else:
-        from backend.models import Anomaly, AnomalyStatus
-except ImportError:  # pragma: no cover - direct module execution fallback
-    from backend.models import Anomaly, AnomalyStatus
-
 class AnomalySubmitRequest(BaseModel):
-    name: str
-    source_url: Optional[str] = None
-    notes: Optional[str] = None
+    name: str = Field(min_length=2, max_length=100)
+    source_url: Optional[AnyHttpUrl] = Field(default=None, max_length=2048)
+    notes: Optional[str] = Field(default=None, max_length=2000)
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def strip_name(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
 
 class FlavorPairingRequest(BaseModel):
-    ingredients: list[str]
+    ingredients: list[str] = Field(min_length=2, max_length=4)
+
+    @field_validator("ingredients")
+    @classmethod
+    def validate_ingredient_names(cls, values: list[str]) -> list[str]:
+        cleaned = [value.strip() for value in values]
+        if any(not value or len(value) > 100 for value in cleaned):
+            raise ValueError("Ingredient names must contain 1 to 100 characters")
+        return cleaned
 
 @app.get("/anomalies/stats")
 async def get_anomaly_stats(db: AsyncSession = Depends(get_db)):
@@ -635,72 +693,158 @@ async def submit_anomaly(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    if not request.name or not request.name.strip():
-        raise HTTPException(status_code=400, detail="Ingredient name is required")
-        
+    normalized_name = request.name.strip()
+    duplicate = await db.scalar(
+        select(Anomaly.id).filter(
+            Anomaly.submitter_user_id == current_user.id,
+            func.lower(Anomaly.scraped_name) == normalized_name.lower(),
+        )
+    )
+    if duplicate:
+        raise HTTPException(status_code=409, detail="You already submitted this ingredient")
+
     new_anomaly = Anomaly(
-        scraped_name=request.name.strip().title(),
-        source_url=request.source_url.strip() if request.source_url else None,
+        scraped_name=normalized_name.title(),
+        source_url=str(request.source_url) if request.source_url else None,
         submitter_user_id=current_user.id,
         votes_for_approval=0,
         status=AnomalyStatus.PENDING
     )
     db.add(new_anomaly)
-    current_user.xp = (current_user.xp or 0) + 50
-    await db.commit()
-    return {"message": "Shadow Card submitted for community peer-review! +50 XP granted", "id": new_anomaly.id}
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="You already submitted this ingredient") from exc
+    return {
+        "message": "Ingredient submitted for community review. Earn 50 XP if it is approved.",
+        "id": new_anomaly.id,
+    }
 
 @app.post("/anomalies/{anomaly_id}/{action}")
 async def vote_or_review_anomaly(
     anomaly_id: int,
-    action: str,
+    action: Literal["sanction", "approve", "upvote", "reject", "debunk", "downvote"],
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    result = await db.execute(select(Anomaly).filter(Anomaly.id == anomaly_id))
+    result = await db.execute(
+        select(Anomaly)
+        .filter(Anomaly.id == anomaly_id)
+        .with_for_update()
+    )
     anomaly = result.scalars().first()
     if not anomaly:
         raise HTTPException(status_code=404, detail="Anomaly not found")
-        
-    xp_reward = 25
-    message = ""
+
+    is_moderator = current_user.role == UserRole.MODERATOR
+    is_approval = action in {"sanction", "approve", "upvote"}
+    if anomaly.status != AnomalyStatus.PENDING:
+        raise HTTPException(status_code=409, detail="This ingredient is no longer awaiting review")
+    if anomaly.submitter_user_id == current_user.id and not is_moderator:
+        raise HTTPException(status_code=403, detail="You cannot vote on your own submission")
+
+    previous_vote = await db.scalar(
+        select(AnomalyVote.id).filter(
+            AnomalyVote.anomaly_id == anomaly.id,
+            AnomalyVote.user_id == current_user.id,
+        )
+    )
+    if previous_vote:
+        raise HTTPException(status_code=409, detail="You already reviewed this ingredient")
+
+    db.add(AnomalyVote(anomaly_id=anomaly.id, user_id=current_user.id, approve=is_approval))
+    try:
+        await db.flush()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="You already reviewed this ingredient") from exc
+
     graduated = False
-    
-    if action in ["sanction", "approve", "upvote"]:
-        anomaly.votes_for_approval += 1
-        message = f"Voted to Sanction '{anomaly.scraped_name}'! (+{xp_reward} XP)"
-        
-        # Graduate if 3 votes reached or user is moderator
-        if anomaly.votes_for_approval >= 3 or current_user.role == UserRole.MODERATOR:
+    rejected = False
+    if is_moderator:
+        new_status = AnomalyStatus.APPROVED if is_approval else AnomalyStatus.REJECTED
+        status_result = await db.execute(
+            update(Anomaly)
+            .where(
+                Anomaly.id == anomaly.id,
+                Anomaly.status == AnomalyStatus.PENDING,
+            )
+            .values(status=new_status)
+            .execution_options(synchronize_session=False)
+        )
+        if status_result.rowcount != 1:
+            await db.rollback()
+            raise HTTPException(status_code=409, detail="This ingredient is no longer awaiting review")
+        await db.refresh(anomaly)
+        graduated = is_approval
+        rejected = not is_approval
+    else:
+        votes = (
+            Anomaly.votes_for_approval + 1
+            if is_approval
+            else case(
+                (Anomaly.votes_for_approval > 0, Anomaly.votes_for_approval - 1),
+                else_=0,
+            )
+        )
+        update_result = await db.execute(
+            update(Anomaly)
+            .where(
+                Anomaly.id == anomaly.id,
+                Anomaly.status == AnomalyStatus.PENDING,
+            )
+            .values(votes_for_approval=votes)
+            .execution_options(synchronize_session=False)
+        )
+        if update_result.rowcount != 1:
+            await db.rollback()
+            raise HTTPException(status_code=409, detail="This ingredient is no longer awaiting review")
+        await db.refresh(anomaly)
+        if is_approval and anomaly.votes_for_approval >= 3:
             anomaly.status = AnomalyStatus.APPROVED
             graduated = True
-            
-            # Check if exists in Ingredient table
-            existing_ing = await db.execute(select(Ingredient).filter(Ingredient.name.ilike(anomaly.scraped_name)))
-            if not existing_ing.scalars().first():
-                new_ing = Ingredient(
-                    name=anomaly.scraped_name,
-                    category="Specialty",
-                    rarity_tier=RarityTier.EPIC,
-                    description=f"Sanctioned by community peer review in the Test Kitchen.",
-                    origin="Community Research"
+
+    if graduated:
+        existing_ingredient = await db.scalar(
+            select(Ingredient).filter(func.lower(Ingredient.name) == anomaly.scraped_name.lower())
+        )
+        if not existing_ingredient:
+            new_ingredient = Ingredient(
+                name=anomaly.scraped_name,
+                category="Specialty",
+                rarity_tier=RarityTier.EPIC,
+                description="Approved by community review in the Test Kitchen.",
+                origin="Community Research",
+            )
+            db.add(new_ingredient)
+            await db.flush()
+            existing_inventory = await db.scalar(
+                select(UserInventory).filter(
+                    UserInventory.user_id == current_user.id,
+                    UserInventory.ingredient_id == new_ingredient.id,
                 )
-                db.add(new_ing)
-                await db.flush()
-                # Grant card to voter as bonus
-                db.add(UserInventory(user_id=current_user.id, ingredient_id=new_ing.id, quantity=1))
-            message = f"🎉 Consensus Reached! '{anomaly.scraped_name}' has graduated to the official Dex!"
-            
-    elif action in ["reject", "debunk", "downvote"]:
-        if current_user.role == UserRole.MODERATOR:
-            anomaly.status = AnomalyStatus.REJECTED
-        else:
-            anomaly.votes_for_approval = max(0, anomaly.votes_for_approval - 1)
-        message = f"Marked '{anomaly.scraped_name}' as suspicious. (+{xp_reward} XP)"
-        
-    current_user.xp = (current_user.xp or 0) + xp_reward
+            )
+            if not existing_inventory:
+                db.add(UserInventory(user_id=current_user.id, ingredient_id=new_ingredient.id, quantity=1))
+        if anomaly.submitter_user_id:
+            await award_xp(db, anomaly.submitter_user_id, 50)
+
+    await award_xp(db, current_user.id, 25)
     await db.commit()
-    return {"message": message, "votes": anomaly.votes_for_approval, "status": anomaly.status.value, "graduated": graduated}
+    message = (
+        f"'{anomaly.scraped_name}' was approved and added to the Dex."
+        if graduated
+        else f"'{anomaly.scraped_name}' was rejected by a moderator."
+        if rejected
+        else f"Your review of '{anomaly.scraped_name}' was recorded."
+    )
+    return {
+        "message": message,
+        "votes": anomaly.votes_for_approval,
+        "status": anomaly.status.value,
+        "graduated": graduated,
+    }
 
 @app.post("/lab/pairing")
 async def analyze_flavor_pairing(request: FlavorPairingRequest):
@@ -747,22 +891,26 @@ async def analyze_flavor_pairing(request: FlavorPairingRequest):
 # ==========================================
 try:
     if __package__:
-        from .crawler import spider_instance
+        from .crawler import spider_instance, CULINARY_AREAS
     else:
-        from backend.crawler import spider_instance
+        from backend.crawler import spider_instance, CULINARY_AREAS
 except ImportError:  # pragma: no cover - direct module execution fallback
-    from backend.crawler import spider_instance
+    from backend.crawler import spider_instance, CULINARY_AREAS
 
 class CrawlerStartRequest(BaseModel):
-    limit: Optional[int] = 20
-    category: Optional[str] = "all"
+    limit: int = Field(default=20, ge=1, le=100)
+    category: str = Field(default="all", min_length=1, max_length=50)
 
 @app.post("/admin/crawler/start")
 async def start_web_spider(
     request: CrawlerStartRequest,
     current_user: User = Depends(get_current_moderator)
 ):
-    res = await spider_instance.start_crawl(limit=request.limit or 20, category=request.category)
+    allowed_categories = {"all", *CULINARY_AREAS}
+    category = request.category.strip()
+    if category not in allowed_categories:
+        raise HTTPException(status_code=422, detail="Unsupported crawler category")
+    res = await spider_instance.start_crawl(limit=request.limit, category=category)
     return res
 
 @app.get("/admin/crawler/status")
@@ -776,5 +924,3 @@ async def stop_web_spider(
     current_user: User = Depends(get_current_moderator)
 ):
     return spider_instance.stop_crawl()
-
-

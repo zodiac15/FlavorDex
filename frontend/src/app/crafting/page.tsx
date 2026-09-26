@@ -143,14 +143,14 @@ export default function KitchenCraftingPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0d0d0f] text-white flex flex-col font-sans pb-28 md:pb-12 selection:bg-orange-500/30">
+    <div className="app-page flex min-h-screen flex-col pb-28 md:pb-12 selection:bg-[#e9b65c]/30">
       {/* Universal Navbar */}
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-6 py-8 flex-1 w-full">
+      <main className="page-wrap max-w-7xl flex-1">
         {/* Hero Section */}
-        <section className="mb-10 text-center relative">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-r from-orange-600/20 via-red-600/20 to-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+        <section className="page-hero text-center">
+          <div className="absolute left-1/2 top-1/2 h-[350px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#e9b65c]/15 via-[#e77a9b]/10 to-[#7c9ff2]/10 blur-[120px] pointer-events-none" />
 
           <motion.div
             initial={{ opacity: 0, y: 15 }}
@@ -158,14 +158,14 @@ export default function KitchenCraftingPage() {
             transition={{ duration: 0.5, ease: easeOut }}
             className="relative z-10"
           >
-            <span className="inline-block px-3 py-1 mb-3 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold uppercase tracking-widest">
-              🍳 Web Recipe Synthesizer
+            <span className="page-eyebrow">
+              Kitchen import
             </span>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
-              The <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 via-amber-400 to-red-500">Kitchen</span>
+            <h1 className="page-title">
+              Cook from anywhere.
             </h1>
-            <p className="text-gray-400 text-sm md:text-base max-w-2xl mx-auto">
-              Discover recipes across the internet, paste the link here to scrape & import them. FlavorDex will analyze the recipe and <strong className="text-orange-300 font-semibold">automatically unlock and grant every ingredient to your Dex inventory!</strong>
+            <p className="page-copy">
+              Paste a recipe link. FlavorDex pulls out the ingredients, saves the dish, and adds new finds to your collection.
             </p>
           </motion.div>
         </section>
@@ -176,14 +176,14 @@ export default function KitchenCraftingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1, ease: easeOut }}
-            className="bg-[#151518]/90 border border-orange-500/20 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden"
+            className="surface relative overflow-hidden p-6 backdrop-blur-xl md:p-8"
           >
             {/* Glow accent */}
-            <div className="absolute -top-24 -right-24 w-60 h-60 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="pointer-events-none absolute -right-24 -top-24 h-60 w-60 rounded-full bg-[#e9b65c]/10 blur-3xl" />
 
             <form onSubmit={handleScrapeRecipe} className="space-y-4">
-              <label className="block text-xs font-bold uppercase tracking-widest text-orange-400">
-                Paste Recipe Web Link
+              <label className="page-eyebrow">
+                Recipe link
               </label>
 
               <div className="flex flex-col sm:flex-row gap-3">
@@ -196,7 +196,7 @@ export default function KitchenCraftingPage() {
                     value={recipeUrl}
                     onChange={(e) => setRecipeUrl(e.target.value)}
                     placeholder="https://www.bbcgoodfood.com/recipes/classic-lasagne..."
-                    className="w-full bg-[#0d0d0f] border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all text-sm md:text-base"
+                    className="control-input w-full py-4 pl-12 pr-4 text-sm transition-all md:text-base"
                     required
                     disabled={isScraping}
                   />
@@ -207,17 +207,17 @@ export default function KitchenCraftingPage() {
                   disabled={isScraping || !recipeUrl.trim()}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-8 py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-red-600 text-black font-extrabold uppercase tracking-widest text-sm shadow-[0_0_25px_rgba(249,115,22,0.4)] hover:shadow-[0_0_35px_rgba(249,115,22,0.6)] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                  className="brand-button flex items-center justify-center gap-2 rounded-xl px-8 py-4 text-sm transition-all disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isScraping ? (
                     <span className="flex items-center gap-2">
                       <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                      <span>Synthesizing...</span>
+                      <span>Reading recipe...</span>
                     </span>
                   ) : (
                     <>
                       <span>⚡</span>
-                      <span>Scrape & Unlock</span>
+                      <span>Import recipe</span>
                     </>
                   )}
                 </motion.button>
@@ -230,7 +230,7 @@ export default function KitchenCraftingPage() {
                   animate={{ opacity: 1, height: "auto" }}
                   className="pt-3 pb-1"
                 >
-                  <div className="flex items-center justify-between text-xs text-orange-300 font-semibold mb-2">
+                  <div className="mb-2 flex items-center justify-between text-xs font-semibold text-[#e9b65c]">
                     <span>
                       {scrapeStep === 1 && "🌐 Fetching webpage & bypassing anti-bot..."}
                       {scrapeStep === 2 && "🔬 Parsing culinary ingredients & instructions..."}
@@ -240,7 +240,7 @@ export default function KitchenCraftingPage() {
                   </div>
                   <div className="w-full h-1.5 bg-black/50 rounded-full overflow-hidden">
                     <motion.div
-                      className="h-full bg-gradient-to-r from-orange-500 via-amber-400 to-red-500"
+                      className="h-full bg-gradient-to-r from-[#e9b65c] via-[#f0d58c] to-[#e77a9b]"
                       initial={{ width: "20%" }}
                       animate={{ width: scrapeStep === 1 ? "40%" : scrapeStep === 2 ? "75%" : "95%" }}
                       transition={{ duration: 0.4 }}
@@ -254,7 +254,7 @@ export default function KitchenCraftingPage() {
                 <motion.p
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl p-3"
+                  className="rounded-xl border border-[#f08aaa]/20 bg-[#f08aaa]/10 p-3 text-xs text-[#f08aaa]"
                 >
                   ⚠️ {errorMessage}
                 </motion.p>
@@ -297,7 +297,7 @@ export default function KitchenCraftingPage() {
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.85, y: 30 }}
                 transition={{ duration: 0.3, ease: easeOut }}
-                className="bg-[#151518] border-2 border-orange-500/40 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-[0_0_50px_rgba(249,115,22,0.3)] my-auto"
+                className="surface my-auto flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden border-[#e9b65c]/30"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header with Cover */}
@@ -309,7 +309,7 @@ export default function KitchenCraftingPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-7xl bg-gradient-to-br from-orange-900/50 to-red-900/50">
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#e9b65c]/20 to-[#e77a9b]/20 text-7xl">
                       🍲
                     </div>
                   )}
@@ -327,7 +327,7 @@ export default function KitchenCraftingPage() {
                       <span className="px-3 py-1 rounded-full bg-emerald-500 text-black text-xs font-black uppercase tracking-wider shadow-lg animate-bounce">
                         🎉 NEW RECIPE UNLOCKED!
                       </span>
-                      <span className="px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/40 text-xs font-bold">
+                      <span className="rounded-full border border-[#e9b65c]/40 bg-[#e9b65c]/20 px-2.5 py-1 text-xs font-bold text-[#f0d58c]">
                         +{scrapedResult.xp_gained} XP
                       </span>
                     </div>
@@ -339,7 +339,7 @@ export default function KitchenCraftingPage() {
                 <div className="p-6 overflow-y-auto space-y-6 flex-1">
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-bold uppercase tracking-widest text-orange-400">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-[#e9b65c]">
                         🎁 Ingredients Added to Your Inventory ({scrapedResult.unlocked_ingredients.length})
                       </h3>
                       <span className="text-xs text-emerald-400 font-semibold">Available in Dex</span>
@@ -349,15 +349,15 @@ export default function KitchenCraftingPage() {
                       {scrapedResult.unlocked_ingredients.map((ing) => (
                         <div
                           key={ing.id}
-                          className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-between"
+                          className="flex items-center justify-between rounded-xl border border-[#e9b65c]/30 bg-[#e9b65c]/10 p-3"
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="w-5 h-5 rounded-full bg-orange-500 text-black flex items-center justify-center text-xs font-bold">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#e9b65c] text-xs font-bold text-[#17140f]">
                               ✓
                             </span>
                             <span className="font-semibold text-sm truncate text-white">{ing.name}</span>
                           </div>
-                          <span className="text-[11px] font-mono text-orange-300 pl-2 shrink-0">
+                          <span className="shrink-0 pl-2 text-[11px] font-mono text-[#f0d58c]">
                             {ing.quantity || "1 unit"}
                           </span>
                         </div>
@@ -367,10 +367,10 @@ export default function KitchenCraftingPage() {
 
                   {scrapedResult.recipe.instructions && (
                     <div>
-                      <h3 className="text-sm font-bold uppercase tracking-widest text-purple-400 mb-2">
+                      <h3 className="mb-2 text-sm font-bold uppercase tracking-widest text-[#b6a0f2]">
                         Scraped Instructions
                       </h3>
-                      <p className="text-xs text-gray-300 bg-[#0d0d0f] p-4 rounded-xl border border-white/5 whitespace-pre-line leading-relaxed max-h-36 overflow-y-auto">
+                      <p className="max-h-36 overflow-y-auto whitespace-pre-line rounded-xl border border-white/10 bg-[#0d131a] p-4 text-xs leading-relaxed text-[#c8ced7]">
                         {scrapedResult.recipe.instructions}
                       </p>
                     </div>
@@ -378,7 +378,7 @@ export default function KitchenCraftingPage() {
                 </div>
 
                 {/* Modal Actions */}
-                <div className="p-4 bg-[#0d0d0f]/90 border-t border-white/5 px-6 flex items-center justify-between gap-4">
+                <div className="flex items-center justify-between gap-4 border-t border-white/10 bg-[#0d131a]/90 p-4 px-6">
                   <Link
                     href="/collection"
                     onClick={() => setScrapedResult(null)}
@@ -389,7 +389,7 @@ export default function KitchenCraftingPage() {
 
                   <button
                     onClick={() => setScrapedResult(null)}
-                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 text-black font-extrabold text-xs uppercase tracking-wider shadow-lg hover:opacity-95 transition-opacity"
+                    className="brand-button rounded-xl px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider shadow-lg transition-opacity hover:opacity-95"
                   >
                     Awesome! Continue
                   </button>
@@ -401,12 +401,12 @@ export default function KitchenCraftingPage() {
 
         {/* View Switcher Tabs */}
         <section className="mb-8">
-          <div className="flex bg-[#151518] p-1.5 rounded-2xl border border-white/5 max-w-md mx-auto">
+          <div className="tab-strip mx-auto flex max-w-md p-1.5">
             <button
               onClick={() => setActiveTab("import")}
               className={`flex-1 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                 activeTab === "import"
-                  ? "bg-gradient-to-r from-orange-500 to-red-600 text-black shadow-lg"
+                  ? "brand-button shadow-lg"
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -416,7 +416,7 @@ export default function KitchenCraftingPage() {
               onClick={() => setActiveTab("recipes")}
               className={`flex-1 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                 activeTab === "recipes"
-                  ? "bg-gradient-to-r from-orange-500 to-red-600 text-black shadow-lg"
+                  ? "brand-button shadow-lg"
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -426,7 +426,7 @@ export default function KitchenCraftingPage() {
               onClick={() => setActiveTab("pantry")}
               className={`flex-1 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                 activeTab === "pantry"
-                  ? "bg-gradient-to-r from-orange-500 to-red-600 text-black shadow-lg"
+                  ? "brand-button shadow-lg"
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -438,7 +438,7 @@ export default function KitchenCraftingPage() {
         {/* Tab 1: How It Works & Guide */}
         {activeTab === "import" && (
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-[#151518]/60 border border-white/5 rounded-2xl p-6">
+            <div className="surface-soft p-6">
               <div className="text-3xl mb-3">1️⃣</div>
               <h3 className="font-bold text-white mb-2">Find Any Recipe Online</h3>
               <p className="text-xs text-gray-400 leading-relaxed">
@@ -446,7 +446,7 @@ export default function KitchenCraftingPage() {
               </p>
             </div>
 
-            <div className="bg-[#151518]/60 border border-white/5 rounded-2xl p-6">
+            <div className="surface-soft p-6">
               <div className="text-3xl mb-3">2️⃣</div>
               <h3 className="font-bold text-white mb-2">Paste & Synthesize</h3>
               <p className="text-xs text-gray-400 leading-relaxed">
@@ -454,7 +454,7 @@ export default function KitchenCraftingPage() {
               </p>
             </div>
 
-            <div className="bg-[#151518]/60 border border-white/5 rounded-2xl p-6">
+            <div className="surface-soft p-6">
               <div className="text-3xl mb-3">3️⃣</div>
               <h3 className="font-bold text-white mb-2">Unlock Ingredients & XP</h3>
               <p className="text-xs text-gray-400 leading-relaxed">
@@ -473,7 +473,7 @@ export default function KitchenCraftingPage() {
             </div>
 
             {discoveredRecipes.length === 0 ? (
-              <div className="text-center py-16 bg-[#151518]/30 rounded-2xl border border-white/5 p-8">
+              <div className="surface-soft p-8 py-16 text-center">
                 <div className="text-4xl mb-3">🍲</div>
                 <h3 className="font-bold text-white mb-1">No recipes discovered yet</h3>
                 <p className="text-xs text-gray-400 mb-4">
@@ -481,7 +481,7 @@ export default function KitchenCraftingPage() {
                 </p>
                 <button
                   onClick={() => setActiveTab("import")}
-                  className="px-5 py-2 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30 text-xs font-bold uppercase tracking-wider"
+                  className="rounded-full border border-[#e9b65c]/30 bg-[#e9b65c]/20 px-5 py-2 text-xs font-bold uppercase tracking-wider text-[#f0d58c]"
                 >
                   Import a Recipe Now
                 </button>
@@ -491,17 +491,17 @@ export default function KitchenCraftingPage() {
                 {discoveredRecipes.map((rec) => (
                   <div
                     key={rec.id}
-                    className="bg-[#151518]/80 border border-white/5 rounded-2xl overflow-hidden flex flex-col hover:border-orange-500/30 transition-all shadow-lg"
+                    className="surface flex flex-col overflow-hidden transition-all hover:border-[#e9b65c]/40"
                   >
                     <div className="h-40 bg-black/50 relative overflow-hidden">
                       {rec.image_url ? (
                         <img src={rec.image_url} alt={rec.title} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-4xl bg-orange-950/30">
+                        <div className="flex h-full w-full items-center justify-center bg-[#e9b65c]/10 text-4xl">
                           🍲
                         </div>
                       )}
-                      <div className="absolute top-3 left-3 bg-[#0d0d0f]/80 px-2 py-0.5 rounded-full text-[10px] font-bold text-amber-300 border border-white/10">
+                      <div className="absolute left-3 top-3 rounded-full border border-white/10 bg-[#0d131a]/80 px-2 py-0.5 text-[10px] font-bold text-[#f0d58c]">
                         ★ {rec.difficulty}/5 Difficulty
                       </div>
                     </div>
@@ -511,7 +511,7 @@ export default function KitchenCraftingPage() {
                         {rec.ingredients?.length || 0} Ingredients Unlocked
                       </p>
                       <div className="mt-auto pt-3 border-t border-white/5 flex items-center justify-between text-xs">
-                        <Link href="/recipes" className="text-orange-400 font-semibold hover:underline">
+                        <Link href="/recipes" className="font-semibold text-[#e9b65c] hover:underline">
                           View in Discovery →
                         </Link>
                       </div>
@@ -533,14 +533,14 @@ export default function KitchenCraftingPage() {
                   value={pantrySearch}
                   onChange={(e) => setPantrySearch(e.target.value)}
                   placeholder="Search your unlocked pantry..."
-                  className="w-full bg-[#151518] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                  className="control-input w-full px-4 py-2.5 text-xs"
                 />
               </div>
               <span className="text-xs text-gray-400">{filteredPantry.length} ingredients in inventory</span>
             </div>
 
             {filteredPantry.length === 0 ? (
-              <div className="text-center py-16 bg-[#151518]/30 rounded-2xl border border-white/5 p-8">
+              <div className="surface-soft p-8 py-16 text-center">
                 <div className="text-4xl mb-3">📦</div>
                 <h3 className="font-bold text-white mb-1">Your pantry is empty</h3>
                 <p className="text-xs text-gray-400 mb-4">
@@ -548,7 +548,7 @@ export default function KitchenCraftingPage() {
                 </p>
                 <Link
                   href="/dashboard"
-                  className="px-5 py-2 rounded-full bg-gradient-to-r from-orange-500 to-red-600 text-black text-xs font-bold uppercase tracking-wider inline-block"
+                  className="brand-button inline-block rounded-full px-5 py-2 text-xs font-bold uppercase tracking-wider"
                 >
                   Open Booster Pack
                 </Link>
@@ -558,9 +558,9 @@ export default function KitchenCraftingPage() {
                 {filteredPantry.map((item) => (
                   <div
                     key={item.id}
-                    className="bg-[#151518]/80 border border-white/5 hover:border-orange-500/30 rounded-2xl p-4 flex flex-col items-center text-center transition-all group shadow-md"
+                    className="surface-soft group flex flex-col items-center p-4 text-center shadow-md transition-all hover:border-[#e9b65c]/30"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition-transform">
+                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl border border-[#e9b65c]/20 bg-[#e9b65c]/10 text-2xl transition-transform group-hover:scale-110">
                       {item.category === "Meat" && "🥩"}
                       {item.category === "Seafood" && "🦐"}
                       {item.category === "Vegetable" && "🥦"}
@@ -574,7 +574,7 @@ export default function KitchenCraftingPage() {
                     </div>
                     <h4 className="font-bold text-xs text-white truncate w-full mb-1">{item.name}</h4>
                     <span className="text-[10px] text-gray-500 uppercase">{item.category}</span>
-                    <span className="mt-2 text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-orange-300 font-bold">
+                    <span className="mt-2 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-mono font-bold text-[#f0d58c]">
                       x{item.quantity || 1} Owned
                     </span>
                   </div>

@@ -140,6 +140,10 @@ class RecipeSpider:
             self.stats["logs"].pop(0)
 
     async def start_crawl(self, limit: int = 25, category: Optional[str] = None):
+        if not 1 <= limit <= 100:
+            raise ValueError("Crawler limit must be between 1 and 100")
+        if category and category != "all" and category not in CULINARY_AREAS:
+            raise ValueError("Unsupported crawler category")
         if self.is_running:
             return {"status": "already_running", "message": "Spider is already active"}
         
@@ -322,4 +326,3 @@ if __name__ == "__main__":
 
     spider = RecipeSpider()
     asyncio.run(spider._run_crawl_pipeline(limit=args.limit, target_area=args.area))
-

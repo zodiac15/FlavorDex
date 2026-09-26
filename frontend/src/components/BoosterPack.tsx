@@ -71,14 +71,14 @@ export default function BoosterPack({ onOpen }: BoosterPackProps) {
         <div className="text-4xl font-black tracking-widest bg-clip-text text-transparent bg-gradient-to-b from-gray-100 via-gray-300 to-gray-500 drop-shadow-lg">
           FLAVORDEX
         </div>
-        <div className="text-sm font-bold tracking-[0.3em] text-purple-300/80 uppercase">
+        <div className="text-sm font-bold uppercase tracking-[0.3em] text-[#f0d58c]/80">
           Daily Booster
         </div>
       </div>
 
       {/* Internal glow accents */}
-      <div className="absolute bottom-0 w-full h-1/2 bg-gradient-to-t from-purple-500/20 to-transparent pointer-events-none" />
-      <div className="absolute top-0 w-full h-1/2 bg-gradient-to-b from-indigo-500/20 to-transparent pointer-events-none" />
+      <div className="pointer-events-none absolute bottom-0 h-1/2 w-full bg-gradient-to-t from-[#e77a9b]/20 to-transparent" />
+      <div className="pointer-events-none absolute top-0 h-1/2 w-full bg-gradient-to-b from-[#7c9ff2]/20 to-transparent" />
     </div>
   );
 

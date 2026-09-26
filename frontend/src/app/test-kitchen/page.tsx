@@ -237,7 +237,7 @@ export default function TestKitchenPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090a0f] text-white flex flex-col font-sans pb-28 md:pb-12 selection:bg-cyan-500/30">
+    <div className="app-page flex min-h-screen flex-col pb-28 md:pb-12 selection:bg-[#7c9ff2]/30">
       {/* Universal Navbar */}
       <Navbar />
 
@@ -248,17 +248,17 @@ export default function TestKitchenPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-full bg-[#101b2b] border border-cyan-500/40 text-cyan-200 text-xs md:text-sm font-semibold shadow-2xl backdrop-blur-md"
+            className="surface fixed left-1/2 top-20 z-50 -translate-x-1/2 rounded-full px-6 py-3 text-xs font-semibold text-[#d9e2f5] shadow-2xl backdrop-blur-md md:text-sm"
           >
             {toastMessage}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <main className="max-w-6xl mx-auto px-6 py-8 flex-1 w-full">
+      <main className="page-wrap max-w-7xl flex-1">
         {/* Hero Section */}
-        <section className="mb-8 text-center relative">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-cyan-600/15 via-teal-600/15 to-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+        <section className="page-hero text-center">
+          <div className="absolute left-1/2 top-1/2 h-[300px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#7c9ff2]/15 via-[#e77a9b]/10 to-[#e9b65c]/10 blur-[120px] pointer-events-none" />
 
           <motion.div
             initial={{ opacity: 0, y: 15 }}
@@ -266,43 +266,43 @@ export default function TestKitchenPage() {
             transition={{ duration: 0.5, ease: easeOut }}
             className="relative z-10"
           >
-            <span className="inline-block px-3 py-1 mb-3 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-widest">
-              🔬 Culinary R&D Lab & Shadow Cards
+            <span className="page-eyebrow">
+              Community lab
             </span>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3 font-display">
-              Test <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400">Kitchen</span>
+            <h1 className="page-title">
+              Help shape the Dex.
             </h1>
-            <p className="text-gray-400 text-sm md:text-base max-w-2xl mx-auto">
-              Peer-review unidentified shadow ingredients scraped from the web, vote to graduate cards into the official Dex, and analyze molecular flavor pairings in the experimental sandbox.
+            <p className="page-copy">
+              Review uncertain ingredients, test flavor pairings, and help good discoveries graduate into the official collection.
             </p>
           </motion.div>
         </section>
 
         {/* Live Database Lab Stats Row */}
         <section className="mb-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-[#11141f]/70 border border-cyan-500/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+          <div className="surface-soft flex flex-col items-center justify-center p-4 text-center">
             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Queue Size</span>
-            <span className="text-2xl font-black text-cyan-400 font-mono">{labStats.pending_count}</span>
+            <span className="font-mono text-2xl font-black text-[#7c9ff2]">{labStats.pending_count}</span>
             <span className="text-[10px] text-gray-500">Pending Anomalies</span>
           </div>
 
-          <div className="bg-[#11141f]/70 border border-cyan-500/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+          <div className="surface-soft flex flex-col items-center justify-center p-4 text-center">
             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Graduated</span>
-            <span className="text-2xl font-black text-emerald-400 font-mono">{labStats.approved_count}</span>
+            <span className="font-mono text-2xl font-black text-[#84c9a4]">{labStats.approved_count}</span>
             <span className="text-[10px] text-gray-500">Sanctioned to Dex</span>
           </div>
 
-          <div className="bg-[#11141f]/70 border border-cyan-500/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+          <div className="surface-soft flex flex-col items-center justify-center p-4 text-center">
             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Total Cataloged</span>
-            <span className="text-2xl font-black text-purple-400 font-mono">{labStats.total_ingredients}</span>
+            <span className="font-mono text-2xl font-black text-[#b6a0f2]">{labStats.total_ingredients}</span>
             <span className="text-[10px] text-gray-500">Dex Ingredients</span>
           </div>
 
-          <div className="bg-[#11141f]/70 border border-cyan-500/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+          <div className="surface-soft flex flex-col items-center justify-center p-4 text-center">
             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Node Status</span>
             <span className="text-xs font-black text-teal-300 font-mono tracking-wider">ACTIVE</span>
-            <span className="text-[10px] text-emerald-400 flex items-center gap-1 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="mt-0.5 flex items-center gap-1 text-[10px] text-[#84c9a4]">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#84c9a4]" />
               Live DB Synced
             </span>
           </div>
@@ -310,13 +310,13 @@ export default function TestKitchenPage() {
 
         {/* Tab Navigation */}
         <section className="mb-8">
-          <div className="flex flex-wrap bg-[#11141f] p-1.5 rounded-2xl border border-cyan-500/20 max-w-3xl mx-auto gap-1">
+          <div className="tab-strip mx-auto flex max-w-3xl flex-wrap gap-1 p-1.5">
             <button
               onClick={() => setActiveTab("anomalies")}
               className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
                 activeTab === "anomalies"
-                  ? "bg-gradient-to-r from-cyan-500 to-teal-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]"
-                  : "text-gray-400 hover:text-white"
+                  ? "bg-[#e9b65c] text-[#17140f]"
+                  : "text-[#8f98a6] hover:text-white"
               }`}
             >
               <span>🔬</span>
@@ -326,7 +326,7 @@ export default function TestKitchenPage() {
               onClick={() => setActiveTab("graduated")}
               className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
                 activeTab === "graduated"
-                  ? "bg-gradient-to-r from-cyan-500 to-teal-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                  ? "bg-[#e77a9b] text-[#230f19]"
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -337,7 +337,7 @@ export default function TestKitchenPage() {
               onClick={() => setActiveTab("sandbox")}
               className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
                 activeTab === "sandbox"
-                  ? "bg-gradient-to-r from-cyan-500 to-teal-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                  ? "bg-[#e77a9b] text-[#230f19]"
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -348,7 +348,7 @@ export default function TestKitchenPage() {
               onClick={() => setActiveTab("submit")}
               className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
                 activeTab === "submit"
-                  ? "bg-gradient-to-r from-cyan-500 to-teal-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                  ? "bg-[#e77a9b] text-[#230f19]"
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -365,7 +365,7 @@ export default function TestKitchenPage() {
               <div>
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   <span>Pending Anomaly Verification Queue</span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-xs">
+                  <span className="rounded-full border border-[#7c9ff2]/30 bg-[#7c9ff2]/10 px-2.5 py-0.5 text-xs text-[#a9bdf0]">
                     +25 XP per vote
                   </span>
                 </h2>
@@ -375,7 +375,7 @@ export default function TestKitchenPage() {
               </div>
               <button
                 onClick={fetchLabData}
-                className="text-xs text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-wider flex items-center gap-1"
+                className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#7c9ff2] hover:text-white"
               >
                 <span>🔄</span> Refresh Queue
               </button>
@@ -384,11 +384,11 @@ export default function TestKitchenPage() {
             {loadingAnomalies ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-44 bg-[#11141f]/60 rounded-2xl animate-pulse border border-white/5" />
+                  <div key={i} className="surface-soft h-44 animate-pulse" />
                 ))}
               </div>
             ) : anomalies.length === 0 ? (
-              <div className="text-center py-20 bg-[#11141f]/40 rounded-3xl border border-cyan-500/10 p-8 max-w-xl mx-auto">
+              <div className="surface-soft mx-auto max-w-xl p-8 py-20 text-center">
                 <div className="text-5xl mb-4">✨</div>
                 <h3 className="text-xl font-bold text-white mb-2">No Shadow Cards in Queue</h3>
                 <p className="text-xs text-gray-400 mb-6">
@@ -396,7 +396,7 @@ export default function TestKitchenPage() {
                 </p>
                 <button
                   onClick={() => setActiveTab("submit")}
-                  className="px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-teal-500 text-black font-bold text-xs uppercase tracking-wider shadow-lg"
+                  className="brand-button rounded-full px-6 py-2.5 text-xs font-bold uppercase tracking-wider shadow-lg"
                 >
                   Submit a Shadow Card
                 </button>
@@ -412,32 +412,32 @@ export default function TestKitchenPage() {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ duration: 0.25, ease: easeOut }}
-                      className="bg-[#11141f]/80 border border-cyan-500/20 hover:border-cyan-500/40 rounded-2xl p-5 flex flex-col justify-between shadow-xl backdrop-blur-md relative overflow-hidden group"
+                      className="surface-soft group relative flex flex-col justify-between overflow-hidden p-5 shadow-xl backdrop-blur-md hover:border-[#7c9ff2]/40"
                     >
                       {/* Top metadata */}
                       <div className="flex items-start justify-between gap-4 mb-3">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[10px] font-mono uppercase font-bold">
+                            <span className="rounded-full border border-[#7c9ff2]/30 bg-[#7c9ff2]/10 px-2 py-0.5 text-[10px] font-mono font-bold uppercase text-[#a9bdf0]">
                               ID #{item.id}
                             </span>
                             <span className="text-[11px] text-gray-500">
                               Harvested by <strong className="text-gray-300">@{item.submitter}</strong>
                             </span>
                           </div>
-                          <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                          <h3 className="text-lg font-bold text-white transition-colors group-hover:text-[#a9bdf0]">
                             {item.name}
                           </h3>
                         </div>
 
                         {/* Votes Indicator */}
                         <div className="flex flex-col items-end">
-                          <span className="text-xs font-mono font-bold text-cyan-400">
+                          <span className="font-mono text-xs font-bold text-[#7c9ff2]">
                             {item.votes}/3 Votes
                           </span>
                           <div className="w-16 h-1.5 bg-black/60 rounded-full mt-1 overflow-hidden">
                             <div
-                              className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400"
+                              className="h-full bg-gradient-to-r from-[#7c9ff2] to-[#84c9a4]"
                               style={{ width: `${Math.min((item.votes / 3) * 100, 100)}%` }}
                             />
                           </div>
@@ -445,7 +445,7 @@ export default function TestKitchenPage() {
                       </div>
 
                       {/* Source URL Preview */}
-                      <div className="bg-[#090a0f] p-2.5 rounded-xl border border-white/5 mb-4 text-[11px] text-gray-400 flex items-center justify-between">
+                      <div className="surface-soft mb-4 flex items-center justify-between p-2.5 text-[11px] text-[#8f98a6]">
                         <span className="truncate flex-1 mr-2">🔗 {item.sourceUrl}</span>
                         <span className="text-[10px] text-gray-600 shrink-0 font-mono">
                           {item.created_at}
@@ -456,13 +456,13 @@ export default function TestKitchenPage() {
                       <div className="flex items-center gap-3 pt-2 border-t border-white/5">
                         <button
                           onClick={() => handleVote(item.id, "reject")}
-                          className="flex-1 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-xs uppercase tracking-wider transition-all"
+                          className="flex-1 rounded-xl border border-[#f08aaa]/30 bg-[#f08aaa]/10 py-2.5 text-xs font-bold uppercase tracking-wider text-[#f08aaa] transition-all hover:bg-[#f08aaa]/20"
                         >
                           ✕ Reject / Flag
                         </button>
                         <button
                           onClick={() => handleVote(item.id, "sanction")}
-                          className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-black font-extrabold text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-all"
+                          className="brand-button flex-1 rounded-xl py-2.5 text-xs font-extrabold uppercase tracking-wider shadow-lg transition-all"
                         >
                           ✓ Sanction Card
                         </button>
@@ -482,7 +482,7 @@ export default function TestKitchenPage() {
               <div>
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   <span>Graduated Dex Ingredients</span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs">
+                  <span className="rounded-full border border-[#84c9a4]/30 bg-[#84c9a4]/10 px-2.5 py-0.5 text-xs text-[#84c9a4]">
                     Verified by Community Consensus
                   </span>
                 </h2>
@@ -493,7 +493,7 @@ export default function TestKitchenPage() {
             </div>
 
             {graduatedAnomalies.length === 0 ? (
-              <div className="text-center py-16 bg-[#11141f]/30 rounded-2xl border border-white/5 p-8 max-w-lg mx-auto">
+              <div className="surface-soft mx-auto max-w-lg p-8 py-16 text-center">
                 <div className="text-4xl mb-3">🎓</div>
                 <h3 className="font-bold text-white mb-1">No graduated anomalies yet</h3>
                 <p className="text-xs text-gray-400 mb-4">
@@ -501,7 +501,7 @@ export default function TestKitchenPage() {
                 </p>
                 <button
                   onClick={() => setActiveTab("anomalies")}
-                  className="px-5 py-2 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold uppercase tracking-wider"
+                  className="rounded-full border border-[#7c9ff2]/30 bg-[#7c9ff2]/20 px-5 py-2 text-xs font-bold uppercase tracking-wider text-[#a9bdf0]"
                 >
                   Review Shadow Queue
                 </button>
@@ -511,11 +511,11 @@ export default function TestKitchenPage() {
                 {graduatedAnomalies.map((item) => (
                   <div
                     key={item.id}
-                    className="bg-[#11141f]/80 border border-emerald-500/20 rounded-2xl p-5 flex flex-col justify-between shadow-lg"
+                    className="surface-soft flex flex-col justify-between p-5 shadow-lg"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase">
+                        <span className="rounded-full bg-[#84c9a4]/10 px-2 py-0.5 text-[10px] font-bold uppercase text-[#84c9a4]">
                           ✓ Sanctioned
                         </span>
                         <span className="text-[10px] text-gray-500 font-mono">{item.created_at}</span>
@@ -526,7 +526,7 @@ export default function TestKitchenPage() {
 
                     <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
                       <span className="text-gray-500">Submitter: @{item.submitter}</span>
-                      <Link href="/collection" className="text-cyan-400 font-semibold hover:underline">
+                      <Link href="/collection" className="font-semibold text-[#7c9ff2] hover:underline">
                         View in Dex →
                       </Link>
                     </div>
@@ -540,9 +540,9 @@ export default function TestKitchenPage() {
         {/* TAB 3: Flavor Matrix Sandbox */}
         {activeTab === "sandbox" && (
           <section className="space-y-6">
-            <div className="bg-[#11141f]/80 border border-cyan-500/20 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-xl">
+            <div className="surface p-6 shadow-2xl backdrop-blur-xl md:p-8">
               <div className="max-w-2xl mb-6">
-                <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+                <span className="text-xs font-bold uppercase tracking-widest text-[#7c9ff2]">
                   🧪 Molecular Flavor Chemistry
                 </span>
                 <h2 className="text-2xl font-bold text-white mt-1">Flavor Synergy Sandbox</h2>
@@ -560,13 +560,13 @@ export default function TestKitchenPage() {
                   {selectedIngredients.length > 0 && (
                     <button
                       onClick={() => setSelectedIngredients([])}
-                      className="text-[11px] text-red-400 hover:underline font-bold uppercase"
+                      className="text-[11px] font-bold uppercase text-[#f08aaa] hover:underline"
                     >
                       Clear Palette
                     </button>
                   )}
                 </div>
-                <div className="min-h-[56px] p-3 rounded-2xl bg-[#090a0f] border border-white/10 flex flex-wrap items-center gap-2">
+                <div className="control-input flex min-h-[56px] flex-wrap items-center gap-2 p-3">
                   {selectedIngredients.length === 0 ? (
                     <span className="text-xs text-gray-500 italic pl-2">
                       Click ingredients from the database palette below or type custom ingredients...
@@ -575,12 +575,12 @@ export default function TestKitchenPage() {
                     selectedIngredients.map((item) => (
                       <span
                         key={item}
-                        className="px-3.5 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-200 text-xs font-bold flex items-center gap-2 shadow-sm"
+                        className="flex items-center gap-2 rounded-full border border-[#7c9ff2]/40 bg-[#7c9ff2]/20 px-3.5 py-1.5 text-xs font-bold text-[#d9e2f5] shadow-sm"
                       >
                         <span>{item}</span>
                         <button
                           onClick={() => toggleIngredient(item)}
-                          className="text-cyan-400 hover:text-white font-bold"
+                          className="font-bold text-[#7c9ff2] hover:text-white"
                         >
                           ✕
                         </button>
@@ -592,12 +592,12 @@ export default function TestKitchenPage() {
 
               {/* Palette Controls & Search */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
-                <div className="flex bg-[#090a0f] p-1 rounded-xl border border-white/10 text-xs font-bold">
+                <div className="tab-strip flex p-1 text-xs font-bold">
                   <button
                     onClick={() => setSandboxFilter("all")}
                     className={`px-3 py-1.5 rounded-lg transition-all ${
                       sandboxFilter === "all"
-                        ? "bg-cyan-500 text-black shadow"
+                        ? "bg-[#e77a9b] text-[#230f19] shadow"
                         : "text-gray-400 hover:text-white"
                     }`}
                   >
@@ -607,7 +607,7 @@ export default function TestKitchenPage() {
                     onClick={() => setSandboxFilter("inventory")}
                     className={`px-3 py-1.5 rounded-lg transition-all ${
                       sandboxFilter === "inventory"
-                        ? "bg-cyan-500 text-black shadow"
+                        ? "bg-[#e77a9b] text-[#230f19] shadow"
                         : "text-gray-400 hover:text-white"
                     }`}
                   >
@@ -621,7 +621,7 @@ export default function TestKitchenPage() {
                     value={sandboxSearch}
                     onChange={(e) => setSandboxSearch(e.target.value)}
                     placeholder="Search ingredients in DB..."
-                    className="w-full bg-[#090a0f] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    className="control-input w-full px-3 py-1.5 text-xs"
                   />
                 </div>
               </div>
@@ -633,11 +633,11 @@ export default function TestKitchenPage() {
                   value={customInput}
                   onChange={(e) => setCustomInput(e.target.value)}
                   placeholder="Or type a custom ingredient (e.g. Saffron, Koji)..."
-                  className="flex-1 bg-[#090a0f] border border-white/10 rounded-xl px-4 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                  className="control-input flex-1 px-4 py-2 text-xs"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold uppercase tracking-wider text-cyan-300 transition-all"
+                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#a9bdf0] transition-all hover:bg-white/10"
                 >
                   + Add
                 </button>
@@ -657,8 +657,8 @@ export default function TestKitchenPage() {
                         onClick={() => toggleIngredient(name)}
                         className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
                           isSelected
-                            ? "bg-cyan-500 text-black font-bold border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]"
-                            : "bg-white/5 text-gray-300 border-white/5 hover:border-cyan-500/30 hover:text-white"
+                            ? "border-[#e77a9b] bg-[#e77a9b] font-bold text-[#230f19] shadow"
+                            : "border-white/5 bg-white/5 text-gray-300 hover:border-[#7c9ff2]/30 hover:text-white"
                         }`}
                       >
                         {isSelected ? "✓ " : "+ "}
@@ -675,7 +675,7 @@ export default function TestKitchenPage() {
                 disabled={pairingLoading || selectedIngredients.length < 2}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-400 text-black font-extrabold uppercase tracking-widest text-xs shadow-[0_0_25px_rgba(6,182,212,0.4)] hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                className="brand-button flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-3.5 text-xs font-extrabold uppercase tracking-widest shadow-lg transition-all disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
               >
                 {pairingLoading ? (
                   <>
@@ -697,18 +697,18 @@ export default function TestKitchenPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: easeOut }}
-                className="bg-[#11141f] border-2 border-cyan-500/40 rounded-3xl p-6 md:p-8 shadow-[0_0_40px_rgba(6,182,212,0.25)] space-y-6"
+                className="surface border-2 border-[#7c9ff2]/30 p-6 shadow-2xl md:p-8"
               >
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#7c9ff2]">
                       Analysis Report
                     </span>
                     <h3 className="text-2xl font-black text-white">{pairingResult.verdict}</h3>
                   </div>
 
-                  <div className="flex items-center gap-3 bg-[#090a0f] px-5 py-3 rounded-2xl border border-cyan-500/30">
-                    <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
+                  <div className="surface-soft flex items-center gap-3 px-5 py-3">
+                    <span className="bg-gradient-to-r from-[#7c9ff2] to-[#84c9a4] bg-clip-text text-3xl font-black text-transparent">
                       {pairingResult.synergy_score}%
                     </span>
                     <span className="text-[10px] text-gray-400 uppercase font-bold leading-tight">
@@ -720,7 +720,7 @@ export default function TestKitchenPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-[#090a0f] p-4 rounded-2xl border border-white/5">
+                  <div className="surface-soft p-4">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">
                       Dominant Flavor Profiles
                     </span>
@@ -728,7 +728,7 @@ export default function TestKitchenPage() {
                       {pairingResult.dominant_profiles.map((prof) => (
                         <span
                           key={prof}
-                          className="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 text-xs font-bold"
+                          className="rounded-full border border-[#7c9ff2]/30 bg-[#7c9ff2]/10 px-2.5 py-1 text-xs font-bold text-[#a9bdf0]"
                         >
                           {prof}
                         </span>
@@ -736,11 +736,11 @@ export default function TestKitchenPage() {
                     </div>
                   </div>
 
-                  <div className="bg-[#090a0f] p-4 rounded-2xl border border-white/5 md:col-span-2">
+                  <div className="surface-soft p-4 md:col-span-2">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">
                       Optimal Culinary Technique
                     </span>
-                    <p className="text-sm font-bold text-emerald-400 mt-1">
+                    <p className="mt-1 text-sm font-bold text-[#84c9a4]">
                       🔥 {pairingResult.recommended_technique}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
@@ -749,8 +749,8 @@ export default function TestKitchenPage() {
                   </div>
                 </div>
 
-                <div className="bg-[#090a0f]/80 p-5 rounded-2xl border border-cyan-500/20">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block mb-2">
+                <div className="surface p-5">
+                  <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-[#7c9ff2]">
                     🔬 Molecular Chemistry & Flavor Notes
                   </span>
                   <p className="text-xs text-gray-300 leading-relaxed font-mono">
@@ -768,27 +768,27 @@ export default function TestKitchenPage() {
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-[#11141f]/90 border border-cyan-500/20 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-xl"
+              className="surface p-6 shadow-2xl backdrop-blur-xl md:p-8"
             >
-              <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#7c9ff2]">
                 📡 Community Bounty Program
               </span>
               <h2 className="text-2xl font-bold text-white mt-1 mb-2">Submit a Shadow Card</h2>
               <p className="text-xs text-gray-400 mb-6">
-                Found an obscure or uncatalogued ingredient in a regional cookbook or niche web recipe? Submit it to the Test Kitchen for peer review. You will receive <strong className="text-cyan-300">+50 XP bounty</strong> immediately!
+                Found an obscure or uncatalogued ingredient in a regional cookbook or niche web recipe? Submit it for peer review and earn <strong className="text-[#a9bdf0]">50 XP if it is approved</strong>.
               </p>
 
               <form onSubmit={handleSubmitAnomaly} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Ingredient Name <span className="text-cyan-400">*</span>
+                    Ingredient Name <span className="text-[#7c9ff2]">*</span>
                   </label>
                   <input
                     type="text"
                     value={submitName}
                     onChange={(e) => setSubmitName(e.target.value)}
                     placeholder="e.g. Fermented Black Garlic Honey, Yuzu Kosho..."
-                    className="w-full bg-[#090a0f] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    className="control-input w-full px-4 py-3 text-sm"
                     required
                   />
                 </div>
@@ -802,7 +802,7 @@ export default function TestKitchenPage() {
                     value={submitUrl}
                     onChange={(e) => setSubmitUrl(e.target.value)}
                     placeholder="https://example.com/exotic-recipe-source..."
-                    className="w-full bg-[#090a0f] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    className="control-input w-full px-4 py-3 text-sm"
                   />
                 </div>
 
@@ -811,9 +811,9 @@ export default function TestKitchenPage() {
                   disabled={isSubmitting || !submitName.trim()}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-black font-extrabold uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(6,182,212,0.4)] disabled:opacity-50 transition-all"
+                  className="brand-button w-full rounded-xl py-3.5 text-xs font-extrabold uppercase tracking-widest shadow-lg transition-all disabled:opacity-50"
                 >
-                  {isSubmitting ? "Submitting to Queue..." : "Transmit Shadow Card (+50 XP)"}
+                  {isSubmitting ? "Submitting for review..." : "Submit for review"}
                 </motion.button>
               </form>
             </motion.div>

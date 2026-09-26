@@ -12,12 +12,12 @@ interface IngredientCardProps {
 }
 
 const rarityData: Record<string, { color: string; stars: number; hasGlow: boolean; hasHolo: boolean; extraFlair?: boolean }> = {
-  common: { color: "#3b82f6", stars: 1, hasGlow: false, hasHolo: false },
-  uncommon: { color: "#10b981", stars: 2, hasGlow: false, hasHolo: false },
-  rare: { color: "#c026d3", stars: 3, hasGlow: true, hasHolo: true },
-  epic: { color: "#06b6d4", stars: 4, hasGlow: true, hasHolo: true },
-  legendary: { color: "#db2777", stars: 5, hasGlow: true, hasHolo: true },
-  mythic: { color: "#c026d3", stars: 6, hasGlow: true, hasHolo: true, extraFlair: true },
+  common: { color: "#8d9aaa", stars: 1, hasGlow: false, hasHolo: false },
+  uncommon: { color: "#a6c36f", stars: 2, hasGlow: false, hasHolo: false },
+  rare: { color: "#7c9ff2", stars: 3, hasGlow: true, hasHolo: true },
+  epic: { color: "#b58ae7", stars: 4, hasGlow: true, hasHolo: true },
+  legendary: { color: "#efb75d", stars: 5, hasGlow: true, hasHolo: true },
+  mythic: { color: "#e77a9b", stars: 6, hasGlow: true, hasHolo: true, extraFlair: true },
 };
 
 const categoryEmojis: Record<string, string> = {
@@ -67,9 +67,9 @@ export default function IngredientCard({ name, category, rarity, imageUrl, isAct
 
   const outerBg = isActiveGoal
     ? "linear-gradient(135deg, #eab308 0%, #ca8a04 100%)"
-    : `linear-gradient(135deg, ${color} 0%, #1a1a24 100%)`;
+    : `linear-gradient(135deg, ${color} 0%, #151d27 100%)`;
 
-  const innerBg = `radial-gradient(circle at 50% 0%, ${color}22 0%, #111116 80%)`;
+  const innerBg = `radial-gradient(circle at 50% 0%, ${color}22 0%, #0d131a 80%)`;
   const artShadow = `inset 0 0 30px ${color}44, 0 10px 30px -10px #000`;
   const starGlow = `0 0 10px ${color}`;
   const rarityBadgeBg = `${color}33`;
@@ -168,7 +168,7 @@ export default function IngredientCard({ name, category, rarity, imageUrl, isAct
           style={{
             transform: "translateZ(30px)",
             background: innerBg,
-            backgroundColor: "#111116",
+            backgroundColor: "#0d131a",
           }}
         >
           {/* Holographic shimmer for rare+ */}

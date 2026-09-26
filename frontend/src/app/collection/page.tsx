@@ -43,32 +43,33 @@ export default function CollectionBook() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0d0d0f] text-white flex flex-col font-sans selection:bg-pink-500/30">
+    <div className="app-page flex min-h-screen flex-col selection:bg-[#e77a9b]/30">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-6 py-8 flex-1 w-full pb-32">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b border-white/5 pb-4">
+      <main className="page-wrap flex-1">
+        <div className="mb-8 flex flex-col justify-between gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-3xl font-black font-display tracking-widest text-white">THE DEX</h1>
-            <p className="text-xs text-gray-400 mt-1">Catalog of all discovered culinary ingredients across the world.</p>
+            <span className="page-eyebrow">Your ingredient index</span>
+            <h1 className="page-title">The Dex</h1>
+            <p className="mt-2 text-sm text-[#8f98a6]">Every ingredient you have found, plus the ones still waiting in the wild.</p>
           </div>
-          <div className="flex bg-[#151518] p-1 rounded-full border border-white/5 text-xs font-bold self-start">
-            <span className="px-4 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+          <div className="tab-strip flex self-start p-1 text-xs font-bold">
+            <span className="rounded-lg bg-[#e77a9b] px-4 py-2 text-[#230f19]">
               Ingredients
             </span>
-            <Link href="/recipes" className="px-4 py-1.5 rounded-full text-gray-400 hover:text-white transition-colors">
-              Recipes Discovery →
+            <Link href="/recipes" className="rounded-lg px-4 py-2 text-[#8f98a6] transition-colors hover:text-[#f7f3eb]">
+              Recipes
             </Link>
           </div>
         </div>
 
-      <div className="max-w-md mx-auto w-full mb-8">
+      <div className="mx-auto mb-8 w-full max-w-md">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search ingredients in Dex..."
-          className="w-full bg-[#151518]/90 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 transition-all text-sm"
+          placeholder="Search your ingredient index"
+          className="control-input w-full px-4 py-3 text-sm transition-all"
         />
       </div>
 
@@ -95,28 +96,28 @@ export default function CollectionBook() {
               initial={{ scale: 0.8, y: 50 }} 
               animate={{ scale: 1, y: 0 }} 
               exit={{ scale: 0.8, y: 50 }}
-              className="bg-[#1a1a24] p-8 rounded-3xl border-2 border-gray-700 max-w-4xl w-full flex flex-col md:flex-row gap-12 items-center"
+              className="surface w-full max-w-4xl flex flex-col items-center gap-12 p-8 md:flex-row"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex-shrink-0">
                 <IngredientCard name={selectedCard.name} category={selectedCard.category} rarity={selectedCard.rarity} />
               </div>
               <div className="flex-1 flex flex-col">
-                <h2 className="text-4xl font-black font-display uppercase tracking-widest text-white mb-2">{selectedCard.name}</h2>
+                <h2 className="font-display mb-2 text-4xl font-bold tracking-tight text-[#f7f3eb]">{selectedCard.name}</h2>
                 <div className="flex gap-4 mb-8">
-                  <span className="px-4 py-1 rounded-full border border-gray-500 text-gray-300 text-sm font-bold uppercase tracking-wider">{selectedCard.category}</span>
-                  <span className="px-4 py-1 rounded-full bg-white text-black text-sm font-bold uppercase tracking-wider">{selectedCard.rarity}</span>
+                  <span className="rounded-full border border-white/15 px-4 py-1 text-sm font-bold capitalize tracking-wider text-[#a4acb8]">{selectedCard.category}</span>
+                  <span className="rounded-full bg-[#e9b65c] px-4 py-1 text-sm font-bold capitalize tracking-wider text-[#17140f]">{selectedCard.rarity}</span>
                 </div>
                 
-                <h3 className="text-xl font-bold text-gray-400 mb-2">Flavor Profile</h3>
-                <p className="text-lg text-white mb-6">{selectedCard.flavor || "Flavor profile unknown."}</p>
+                <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-[#e9b65c]">Flavor profile</h3>
+                <p className="mb-6 text-lg text-[#f7f3eb]">{selectedCard.flavor || "Flavor profile not recorded yet."}</p>
                 
-                <h3 className="text-xl font-bold text-gray-400 mb-2">Origin</h3>
-                <p className="text-lg text-white mb-6">{selectedCard.origin || "Origin unknown."}</p>
+                <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-[#e9b65c]">Origin</h3>
+                <p className="mb-6 text-lg text-[#f7f3eb]">{selectedCard.origin || "Origin not recorded yet."}</p>
                 
                 <button 
                   onClick={() => setSelectedCard(null)}
-                  className="mt-auto self-end px-8 py-3 bg-neon-cyan text-black font-bold uppercase tracking-widest rounded-full hover:bg-white transition-colors"
+                  className="brand-button mt-auto self-end rounded-xl px-8 py-3 transition-colors"
                 >
                   Close
                 </button>

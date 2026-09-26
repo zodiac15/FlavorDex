@@ -27,8 +27,9 @@ except ImportError:  # pragma: no cover - supports direct module execution in lo
     from backend.database import get_db
     from backend.models import User, UserRole
 
-# Fixed secret key for local development so tokens survive server restarts
-SECRET_KEY = os.getenv("SECRET_KEY", "b33671cd24d4b2e88a3b839ee851b22dbf9e9cfb591f42289c065f4d1e2e4242")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY or len(SECRET_KEY.encode("utf-8")) < 32:
+    raise RuntimeError("SECRET_KEY must be set and contain at least 32 bytes")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 1 week
 

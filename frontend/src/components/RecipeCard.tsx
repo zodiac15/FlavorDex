@@ -52,19 +52,19 @@ export default function RecipeCard({ title, difficulty, dietaryTags, ingredientC
         }}
       >
         {/* Recipe badge */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500" />
+        <div className="absolute left-0 right-0 top-0 h-1 bg-gradient-to-r from-[#e9b65c] via-[#f0d58c] to-[#e77a9b]" />
 
         {/* Header */}
         <div className="w-full flex justify-between items-center z-30">
-          <span className="text-xs uppercase tracking-[0.2em] font-bold text-amber-400/70">Recipe</span>
-          <span className="text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider border border-amber-500/30 text-amber-400 bg-amber-500/10 backdrop-blur-md">
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#f0d58c]/70">Recipe</span>
+          <span className="rounded-full border border-[#e9b65c]/30 bg-[#e9b65c]/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#e9b65c] backdrop-blur-md">
             🍳 Dish
           </span>
         </div>
 
         {/* Recipe artwork */}
         <div
-          className="relative w-40 h-40 rounded-2xl border border-white/10 shadow-2xl flex items-center justify-center bg-gradient-to-br from-amber-950/50 to-[#0a0a0d] z-30"
+          className="relative z-30 flex h-40 w-40 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-[#e9b65c]/20 to-[#0a0a0d] shadow-2xl"
           style={{
             boxShadow: "inset 0 0 30px #f59e0b22, 0 10px 30px -10px #000",
             transform: "translateZ(25px)",
@@ -76,14 +76,14 @@ export default function RecipeCard({ title, difficulty, dietaryTags, ingredientC
         {/* Title */}
         <div className="w-full flex flex-col items-center gap-2 z-30">
           <h2
-            className="text-xl font-black text-center uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-br from-amber-200 to-amber-500 drop-shadow-lg"
+            className="bg-gradient-to-br from-[#f0d58c] to-[#e9b65c] bg-clip-text text-center text-xl font-black uppercase tracking-wider text-transparent drop-shadow-lg"
             style={{ transform: "translateZ(15px)" }}
           >
             {title}
           </h2>
 
           {/* Difficulty */}
-          <div className="text-amber-400 text-sm tracking-widest">{difficultyStars}</div>
+          <div className="text-sm tracking-widest text-[#e9b65c]">{difficultyStars}</div>
 
           {/* Tags */}
           <div className="flex gap-2 flex-wrap justify-center">

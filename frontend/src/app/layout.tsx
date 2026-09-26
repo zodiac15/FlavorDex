@@ -15,12 +15,12 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "FlavorDex — Collect. Cook. Conquer.",
-  description: "A gamified, Pokémon-inspired culinary platform. Discover rare ingredients, master complex recipes, and build your ultimate culinary collection.",
+  title: "FlavorDex — Your pantry, now collectible.",
+  description: "Collect unusual ingredients, unlock recipes, and turn every meal into a small adventure.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0d0d0f",
+  themeColor: "#080b10",
   width: "device-width",
   initialScale: 1,
 };
@@ -35,7 +35,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${poppins.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col font-sans bg-background text-foreground selection:bg-pink-500/30">
+      <body className="min-h-full flex flex-col bg-background font-sans text-foreground selection:bg-[#e77a9b]/30">
         <AuthProvider>
           {children}
         </AuthProvider>

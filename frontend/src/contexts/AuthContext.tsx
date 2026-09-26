@@ -30,7 +30,6 @@ export function useAuth() {
 
 const PROTECTED_ROUTES = ["/dashboard", "/collection", "/crafting", "/test-kitchen"];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -96,8 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (username: string, email: string, password: string) => {
-    const res = await fetch(`${API_URL}/register?username=${encodeURIComponent(username)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, {
+    const res = await fetch(apiUrl("/register"), {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password }),
     });
 
     if (!res.ok) {

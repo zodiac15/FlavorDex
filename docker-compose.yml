@@ -5,12 +5,14 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: sqlite+aiosqlite:///./flavordex.db
+      DATABASE_URL: sqlite+aiosqlite:////app/data/flavordex.db
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       CORS_ORIGINS: http://frontend:3000,http://localhost:3000
     volumes:
       - ./backend:/app/backend
+      - flavordex_data:/app/data
     working_dir: /app
-    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    command: sh -c "alembic -c backend/alembic.ini upgrade head && uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
 
   frontend:
     image: ghcr.io/zodiac15/flavordex-frontend:latest
@@ -25,3 +27,6 @@ services:
       - ./frontend:/app
       - /app/node_modules
     command: npm run dev -- --hostname 0.0.0.0 --port 3000
+
+volumes:
+  flavordex_data:
