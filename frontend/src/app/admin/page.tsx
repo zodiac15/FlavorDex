@@ -43,7 +43,7 @@ const rarityColors: Record<string, string> = {
   Common: 'bg-gray-500/20 text-gray-300 border-gray-500/30',
   Uncommon: 'bg-green-500/20 text-green-300 border-green-500/30',
   Rare: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-  Epic: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+  Epic: 'bg-[#b6a0f2]/20 text-[#d6cafa] border-[#b6a0f2]/30',
 };
 
 const CUISINES = [
@@ -204,29 +204,29 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0d0d0f] text-white font-sans selection:bg-orange-500/30">
+    <div className="app-page min-h-screen selection:bg-[#e9b65c]/30">
       {/* Universal Navbar */}
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-8 py-10 space-y-10 pb-24">
+      <main className="page-wrap max-w-7xl space-y-10">
         {error ? (
-          <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-6 rounded-2xl text-center">
+          <div className="surface border-[#e77a9b]/30 bg-[#e77a9b]/10 p-6 text-center text-[#f08aaa]">
             <p>{error}</p>
           </div>
         ) : loading ? (
           <div className="flex items-center justify-center h-[50vh]">
-            <div className="w-8 h-8 rounded-full border-2 border-red-500 border-t-transparent animate-spin" />
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#e77a9b] border-t-transparent" />
           </div>
         ) : (
           <>
             {/* Header Title */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
               <div>
-                <span className="text-[10px] text-red-400 font-bold uppercase tracking-widest bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full">
-                  🛡️ Moderator Command Center
+                <span className="page-eyebrow">
+                  Moderator tools
                 </span>
-                <h1 className="text-3xl font-black font-display tracking-tight text-white mt-2">
-                  Admin <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-orange-400">Dashboard</span>
+                <h1 className="page-title mt-2">
+                  Keep FlavorDex healthy.
                 </h1>
               </div>
               <button
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
                   fetchData();
                   fetchSpiderStatus();
                 }}
-                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold uppercase tracking-wider transition-all border border-white/10 flex items-center gap-1.5"
+                className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-bold tracking-wider text-white transition-all hover:bg-white/10"
               >
                 <span>🔄</span> Refresh Database Data
               </button>
@@ -242,7 +242,7 @@ export default function AdminDashboard() {
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <div className="bg-[#151518]/60 border border-white/5 rounded-2xl p-6 relative overflow-hidden backdrop-blur-md">
+              <div className="surface relative overflow-hidden p-6 backdrop-blur-md">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white/50 uppercase tracking-wider">Total Users</span>
                   <span className="text-xl">👥</span>
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-[#151518]/60 border border-white/5 rounded-2xl p-6 relative overflow-hidden backdrop-blur-md">
+              <div className="surface relative overflow-hidden p-6 backdrop-blur-md">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white/50 uppercase tracking-wider">Cataloged Ingredients</span>
                   <span className="text-xl">🧪</span>
@@ -262,7 +262,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-[#151518]/60 border border-white/5 rounded-2xl p-6 relative overflow-hidden backdrop-blur-md">
+              <div className="surface relative overflow-hidden p-6 backdrop-blur-md">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white/50 uppercase tracking-wider">Live Recipes</span>
                   <span className="text-xl">📋</span>
@@ -272,7 +272,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-[#151518]/60 border border-white/5 rounded-2xl p-6 relative overflow-hidden backdrop-blur-md">
+              <div className="surface relative overflow-hidden p-6 backdrop-blur-md">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white/50 uppercase tracking-wider">Spider Status</span>
                   <span className="text-xl">🕷️</span>
@@ -288,14 +288,14 @@ export default function AdminDashboard() {
 
             {/* Navigation Tabs */}
             <div className="space-y-6">
-              <div className="flex bg-[#151518]/80 p-1.5 rounded-2xl border border-white/5 max-w-2xl gap-1">
+              <div className="tab-strip flex max-w-2xl gap-1 p-1.5">
                 {(['Web Spider', 'Recipes', 'Ingredients', 'Users'] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`flex-1 py-2.5 text-xs font-extrabold rounded-xl transition-all uppercase tracking-wider flex items-center justify-center gap-1.5 ${
                       activeTab === tab 
-                        ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
+                        ? 'bg-[#e9b65c] text-[#17140f]'
                         : 'text-white/50 hover:text-white hover:bg-white/5'
                     }`}
                   >
@@ -324,7 +324,7 @@ export default function AdminDashboard() {
                     {/* Spider Controls & Stats */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       {/* Configuration Card */}
-                      <div className="bg-[#151518]/80 border border-white/10 rounded-3xl p-6 lg:col-span-1 shadow-xl flex flex-col justify-between">
+                      <div className="surface flex flex-col justify-between p-6 lg:col-span-1">
                         <div>
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-xl">🕷️</span>
@@ -343,7 +343,7 @@ export default function AdminDashboard() {
                                 value={crawlArea}
                                 onChange={(e) => setCrawlArea(e.target.value)}
                                 disabled={spiderStatus.status === 'crawling'}
-                                className="w-full bg-[#090a0f] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-red-400"
+                                className="control-input w-full px-4 py-2.5 text-xs"
                               >
                                 {CUISINES.map((c) => (
                                   <option key={c} value={c}>{c}</option>
@@ -363,7 +363,7 @@ export default function AdminDashboard() {
                                 value={crawlLimit}
                                 onChange={(e) => setCrawlLimit(Number(e.target.value))}
                                 disabled={spiderStatus.status === 'crawling'}
-                                className="w-full accent-orange-500"
+                                className="w-full accent-[#e9b65c]"
                               />
                               <div className="flex justify-between text-[10px] text-gray-500 font-mono mt-1">
                                 <span>5</span>
@@ -378,7 +378,7 @@ export default function AdminDashboard() {
                           {spiderStatus.status === 'crawling' ? (
                             <button
                               onClick={handleStopSpider}
-                              className="w-full py-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 font-bold text-xs uppercase tracking-wider transition-all"
+                              className="w-full rounded-xl border border-[#f08aaa]/40 bg-[#f08aaa]/20 py-3 text-xs font-bold uppercase tracking-wider text-[#f08aaa] transition-all hover:bg-[#f08aaa]/30"
                             >
                               🛑 Stop Spider
                             </button>
@@ -386,7 +386,7 @@ export default function AdminDashboard() {
                             <button
                               onClick={handleStartSpider}
                               disabled={isTriggeringSpider}
-                              className="w-full py-3 rounded-xl bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 text-black font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(239,68,68,0.4)] hover:shadow-[0_0_30px_rgba(239,68,68,0.6)] disabled:opacity-50 transition-all"
+                              className="brand-button w-full py-3 text-xs font-black uppercase tracking-widest shadow-lg transition-all disabled:opacity-50"
                             >
                               {isTriggeringSpider ? "Launching..." : "🚀 Launch Spider Crawl"}
                             </button>
@@ -395,46 +395,46 @@ export default function AdminDashboard() {
                       </div>
 
                       {/* Live Terminal & Metrics */}
-                      <div className="bg-[#11141f]/90 border border-white/10 rounded-3xl p-6 lg:col-span-2 shadow-2xl flex flex-col justify-between">
+                      <div className="surface flex flex-col justify-between p-6 shadow-2xl lg:col-span-2">
                         <div>
                           <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
                             <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-orange-400 animate-pulse" />
+                              <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#e9b65c]" />
                               <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-gray-300">
                                 Live Crawler Feed & Activity Log
                               </h3>
                             </div>
                             <span className="text-[11px] font-mono text-gray-500">
-                              Sector: <strong className="text-orange-400">{spiderStatus.current_target}</strong>
+                              Sector: <strong className="text-[#e9b65c]">{spiderStatus.current_target}</strong>
                             </span>
                           </div>
 
                           {/* Quick Live Stats Pill Bar */}
                           <div className="grid grid-cols-3 gap-3 mb-4">
-                            <div className="bg-[#090a0f] p-3 rounded-xl border border-white/5 text-center">
+                            <div className="surface-soft p-3 text-center">
                               <span className="text-[10px] text-gray-500 uppercase font-bold block">Harvested</span>
                               <span className="text-xl font-bold font-mono text-emerald-400">
                                 {spiderStatus.recipes_harvested}
                               </span>
                             </div>
 
-                            <div className="bg-[#090a0f] p-3 rounded-xl border border-white/5 text-center">
+                            <div className="surface-soft p-3 text-center">
                               <span className="text-[10px] text-gray-500 uppercase font-bold block">New Ingredients</span>
-                              <span className="text-xl font-bold font-mono text-cyan-400">
+                              <span className="font-mono text-xl font-bold text-[#7c9ff2]">
                                 {spiderStatus.ingredients_added}
                               </span>
                             </div>
 
-                            <div className="bg-[#090a0f] p-3 rounded-xl border border-white/5 text-center">
+                            <div className="surface-soft p-3 text-center">
                               <span className="text-[10px] text-gray-500 uppercase font-bold block">Anomalies</span>
-                              <span className="text-xl font-bold font-mono text-purple-400">
+                              <span className="font-mono text-xl font-bold text-[#b6a0f2]">
                                 {spiderStatus.anomalies_flagged}
                               </span>
                             </div>
                           </div>
 
                           {/* Live Console Output */}
-                          <div className="bg-[#090a0f] border border-white/5 rounded-2xl p-4 h-64 overflow-y-auto font-mono text-xs text-gray-300 space-y-1.5">
+                          <div className="surface-soft h-64 space-y-1.5 overflow-y-auto p-4 font-mono text-xs text-[#c8ced7]">
                             {spiderStatus.logs && spiderStatus.logs.length > 0 ? (
                               spiderStatus.logs.map((log, index) => (
                                 <div key={index} className="leading-relaxed">
@@ -461,10 +461,10 @@ export default function AdminDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.3, ease: easeOut }}
-                    className="overflow-x-auto bg-[#151518]/40 border border-white/5 rounded-2xl"
+                    className="surface-soft overflow-x-auto"
                   >
                     <table className="w-full text-left text-sm text-white/70">
-                      <thead className="bg-[#151518]/60 text-xs font-semibold text-white/50 uppercase border-b border-white/5">
+                      <thead className="border-b border-white/10 bg-white/[0.03] text-xs font-semibold uppercase text-white/50">
                         <tr>
                           <th className="px-6 py-4">User</th>
                           <th className="px-6 py-4">Email</th>
@@ -477,7 +477,7 @@ export default function AdminDashboard() {
                         {users.map((u) => (
                           <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
                             <td className="px-6 py-4 font-medium text-white flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center font-bold text-xs text-white">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#e77a9b] to-[#e9b65c] text-xs font-bold text-[#17140f]">
                                 {u.username[0].toUpperCase()}
                               </div>
                               {u.username}
@@ -486,7 +486,7 @@ export default function AdminDashboard() {
                             <td className="px-6 py-4">
                               <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                                 u.role === 'moderator' 
-                                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' 
+                                  ? 'bg-[#b6a0f2]/20 text-[#d6cafa] border border-[#b6a0f2]/30'
                                   : 'bg-white/5 text-white/60'
                               }`}>
                                 {u.role}
@@ -517,7 +517,7 @@ export default function AdminDashboard() {
                         placeholder="Filter ingredients..."
                         value={ingredientSearch}
                         onChange={(e) => setIngredientSearch(e.target.value)}
-                        className="bg-[#151518]/60 border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-red-500 w-72"
+                        className="control-input w-72 px-4 py-2 text-sm"
                       />
                       <span className="text-sm text-white/50">Showing {filteredIngredients.length} ingredients</span>
                     </div>
@@ -526,7 +526,7 @@ export default function AdminDashboard() {
                       {filteredIngredients.map((ing) => (
                         <div 
                           key={ing.id} 
-                          className="bg-[#151518]/60 border border-white/5 rounded-xl p-4 flex flex-col justify-between hover:border-white/10 transition-colors"
+                          className="surface-soft flex flex-col justify-between p-4 transition-colors hover:border-white/20"
                         >
                           <div>
                             <div className="flex items-center justify-between mb-2">
@@ -564,13 +564,13 @@ export default function AdminDashboard() {
                     {recipes.map((recipe: any) => (
                       <div
                         key={recipe.id}
-                        className="bg-[#151518]/60 border border-white/5 rounded-xl p-4 flex flex-col hover:border-white/10 transition-colors col-span-full md:col-span-1 lg:col-span-2"
+                        className="surface-soft col-span-full flex flex-col p-4 transition-colors hover:border-white/20 md:col-span-1 lg:col-span-2"
                       >
                         <div className="flex-1 mb-4">
                           <h3 className="font-medium text-white/90 mb-1">{recipe.title}</h3>
                           <div className="flex items-center gap-1 mt-2 mb-3">
                             {Array.from({ length: 5 }).map((_, i) => (
-                              <span key={i} className={`text-sm ${i < recipe.difficulty ? 'text-amber-500' : 'text-white/10'}`}>
+                              <span key={i} className={`text-sm ${i < recipe.difficulty ? 'text-[#e9b65c]' : 'text-white/10'}`}>
                                 ★
                               </span>
                             ))}

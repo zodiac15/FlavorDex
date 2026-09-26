@@ -3,8 +3,32 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "../contexts/AuthContext";
+
+type NavLink = {
+  label: string;
+  href: string;
+  icon: string;
+};
+
+const guestNavLinks: NavLink[] = [
+  { label: "Home", href: "/", icon: "⌂" },
+  { label: "The Dex", href: "/collection", icon: "▦" },
+  { label: "Recipes", href: "/recipes", icon: "✦" },
+];
+
+const authNavLinks: NavLink[] = [
+  { label: "The Dex", href: "/collection", icon: "▦" },
+  { label: "Recipes", href: "/recipes", icon: "✦" },
+  { label: "Kitchen", href: "/crafting", icon: "♨" },
+  { label: "Test Kitchen", href: "/test-kitchen", icon: "⌁" },
+  { label: "Dashboard", href: "/dashboard", icon: "◈" },
+];
+
+function isLinkActive(pathname: string, href: string) {
+  return pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+}
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -12,153 +36,110 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-  const isAuthenticated = !!user;
+  const isAuthenticated = Boolean(user);
   const isModerator = user?.role === "moderator";
-
-  // Navigation Links tailored to authentication state
-  const guestNavLinks = [
-    { label: "Home", href: "/", icon: "🏠" },
-    { label: "The Dex", href: "/collection", icon: "📖" },
-    { label: "Recipes", href: "/recipes", icon: "🍲" }
-  ];
-
-  const authNavLinks = [
-    { label: "The Dex", href: "/collection", icon: "📖" },
-    { label: "Recipes", href: "/recipes", icon: "🍲" },
-    { label: "Kitchen", href: "/crafting", icon: "🍳" },
-    { label: "Test Kitchen", href: "/test-kitchen", icon: "🔬" },
-    { label: "Dashboard", href: "/dashboard", icon: "🎴" }
-  ];
-
-  if (isModerator) {
-    authNavLinks.push({ label: "Admin Console", href: "/admin", icon: "🛡️" });
-  }
-
-  const activeLinks = isAuthenticated ? authNavLinks : guestNavLinks;
+  const activeLinks = isAuthenticated
+    ? isModerator
+      ? [...authNavLinks, { label: "Admin Console", href: "/admin", icon: "⚑" }]
+      : authNavLinks
+    : guestNavLinks;
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-[#0d0d0f]/85 backdrop-blur-xl border-b border-white/5 px-4 sm:px-6 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-8">
+      <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#080b10]/85 px-4 py-3 backdrop-blur-xl sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <div className="flex items-center gap-7">
             <Link
               href={isAuthenticated ? "/dashboard" : "/"}
-              className="text-xl sm:text-2xl font-black tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:opacity-90 transition-opacity"
+              className="group flex items-center gap-2.5 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e9b65c]"
+              aria-label="FlavorDex home"
             >
-              FLAVORDEX
+              <span className="grid h-8 w-8 place-items-center rounded-lg border border-[#e77a9b]/50 bg-[#e77a9b]/10 font-display text-sm font-bold text-[#f08aaa] transition group-hover:border-[#e77a9b]">
+                F
+              </span>
+              <span className="font-display text-lg font-bold tracking-[-0.02em] text-[#f7f3eb] sm:text-xl">
+                Flavor<span className="text-[#e77a9b]">Dex</span>
+              </span>
             </Link>
 
-            {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-1.5 text-sm font-medium">
+            <nav aria-label="Primary navigation" className="hidden items-center gap-1 lg:flex">
               {activeLinks.map((link) => {
-                const isActive = pathname === link.href;
+                const active = isLinkActive(pathname, link.href);
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
-                      isActive
-                        ? "bg-white/10 text-white font-bold border border-white/10 shadow-sm"
-                        : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
+                    aria-current={active ? "page" : undefined}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                      active
+                        ? "bg-white/[0.09] text-[#f7f3eb]"
+                        : "text-[#8f98a6] hover:bg-white/[0.05] hover:text-[#f7f3eb]"
                     }`}
                   >
-                    <span className="text-xs">{link.icon}</span>
-                    <span>{link.label}</span>
+                    <span className={active ? "text-[#e9b65c]" : "text-[#687483]"} aria-hidden="true">{link.icon}</span>
+                    {link.label}
                   </Link>
                 );
               })}
             </nav>
           </div>
 
-          {/* Right Section: Auth Specific Controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {isAuthenticated ? (
               <div className="relative">
-                <div className="flex items-center gap-3">
-                  {/* User Rank & XP Pill */}
-                  <div className="hidden sm:flex flex-col items-end text-right">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-gray-200">{user?.username}</span>
-                      {isModerator && (
-                        <span className="px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[9px] font-extrabold uppercase">
-                          Mod
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[10px] text-purple-400 font-mono">
-                      Rank {user?.rank || 1} • {user?.xp || 0} XP
-                    </span>
-                  </div>
-
-                  {/* Avatar Dropdown Trigger */}
-                  <button
-                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                    className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-600 flex items-center justify-center font-bold text-xs text-white shadow-lg ring-2 ring-white/10 hover:ring-purple-400 transition-all cursor-pointer"
-                  >
+                <button
+                  type="button"
+                  aria-label="Open account menu"
+                  aria-expanded={profileDropdownOpen}
+                  aria-haspopup="menu"
+                  onClick={() => setProfileDropdownOpen((open) => !open)}
+                  className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-1.5 pr-2.5 transition hover:border-white/25 hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e9b65c]"
+                >
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-[#e77a9b] to-[#6174d6] text-xs font-bold text-white">
                     {(user?.username || "U")[0].toUpperCase()}
-                  </button>
-                </div>
+                  </span>
+                  <span className="hidden text-left sm:block">
+                    <span className="block max-w-24 truncate text-xs font-bold text-[#f7f3eb]">{user?.username}</span>
+                    <span className="block text-[10px] text-[#e9b65c]">Rank {user?.rank || 1} · {user?.xp || 0} XP</span>
+                  </span>
+                  <span className="hidden text-xs text-[#687483] sm:block" aria-hidden="true">⌄</span>
+                </button>
 
-                {/* Profile Dropdown Menu */}
                 <AnimatePresence>
                   {profileDropdownOpen && (
                     <>
-                      <div
-                        className="fixed inset-0 z-40"
+                      <button
+                        type="button"
+                        aria-label="Close account menu"
+                        className="fixed inset-0 z-40 h-full w-full cursor-default"
                         onClick={() => setProfileDropdownOpen(false)}
                       />
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                        role="menu"
+                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.98 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 mt-2 w-56 bg-[#151518] border border-white/10 rounded-2xl shadow-2xl z-50 p-2 text-sm"
+                        className="absolute right-0 z-50 mt-2 w-60 rounded-2xl border border-white/10 bg-[#121820] p-2 text-sm shadow-2xl shadow-black/50"
                       >
-                        <div className="px-3 py-2 border-b border-white/5 mb-1">
-                          <p className="font-bold text-white text-xs truncate">{user?.username}</p>
-                          <p className="text-[11px] text-gray-500 truncate">{user?.email}</p>
+                        <div className="border-b border-white/10 px-3 pb-3 pt-2">
+                          <p className="truncate text-xs font-bold text-[#f7f3eb]">{user?.username}</p>
+                          <p className="mt-1 truncate text-[11px] text-[#687483]">{user?.email}</p>
                         </div>
-
-                        <Link
-                          href="/profile"
-                          onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-xs font-semibold"
-                        >
-                          <span>👤</span>
-                          <span>My Profile & Stats</span>
+                        <Link role="menuitem" href="/profile" onClick={() => setProfileDropdownOpen(false)} className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-[#b4bdc9] transition hover:bg-white/[0.07] hover:text-[#f7f3eb]">
+                          <span aria-hidden="true">◉</span> My profile and stats
                         </Link>
-
-                        <Link
-                          href="/dashboard"
-                          onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-xs font-semibold"
-                        >
-                          <span>🎴</span>
-                          <span>Daily Booster Packs</span>
+                        <Link role="menuitem" href="/dashboard" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-[#b4bdc9] transition hover:bg-white/[0.07] hover:text-[#f7f3eb]">
+                          <span aria-hidden="true">◈</span> Daily booster packs
                         </Link>
-
                         {isModerator && (
-                          <Link
-                            href="/admin"
-                            onClick={() => setProfileDropdownOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-purple-300 hover:text-purple-200 hover:bg-purple-500/10 transition-colors text-xs font-semibold"
-                          >
-                            <span>🛡️</span>
-                            <span>Admin Console</span>
+                          <Link role="menuitem" href="/admin" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-[#d9c4f4] transition hover:bg-[#b58ae7]/10 hover:text-white">
+                            <span aria-hidden="true">⚑</span> Admin console
                           </Link>
                         )}
-
-                        <div className="border-t border-white/5 mt-1 pt-1">
-                          <button
-                            onClick={() => {
-                              setProfileDropdownOpen(false);
-                              logout();
-                            }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors text-xs font-semibold text-left"
-                          >
-                            <span>🚪</span>
-                            <span>Sign Out</span>
+                        <div className="mt-1 border-t border-white/10 pt-1">
+                          <button type="button" onClick={() => { setProfileDropdownOpen(false); logout(); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-[#e77a9b] transition hover:bg-[#e77a9b]/10">
+                            <span aria-hidden="true">↪</span> Sign out
                           </button>
                         </div>
                       </motion.div>
@@ -167,192 +148,91 @@ export default function Navbar() {
                 </AnimatePresence>
               </div>
             ) : (
-              /* Guest Actions */
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/auth"
-                  className="text-xs font-bold text-gray-300 hover:text-white px-3 py-1.5 transition-colors"
-                >
-                  Sign In
+              <div className="hidden items-center gap-2 sm:flex">
+                <Link href="/auth" className="rounded-lg px-3 py-2 text-xs font-semibold text-[#a4acb8] transition hover:text-[#f7f3eb]">
+                  Sign in
                 </Link>
-
-                <Link
-                  href="/auth"
-                  className="px-4 py-2 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 text-white text-xs font-bold uppercase tracking-wider shadow-lg hover:opacity-95 transition-all"
-                >
-                  Get Started
+                <Link href="/auth" className="rounded-lg bg-[#e77a9b] px-4 py-2.5 text-xs font-bold text-[#230f19] transition hover:bg-[#f08aaa]">
+                  Get started
                 </Link>
               </div>
             )}
 
-            {/* Mobile Hamburger Toggle */}
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-white"
+              type="button"
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-base text-[#a4acb8] transition hover:border-white/25 hover:text-[#f7f3eb] lg:hidden"
             >
-              {mobileMenuOpen ? "✕" : "☰"}
+              {mobileMenuOpen ? "×" : "☰"}
             </button>
           </div>
         </div>
 
-        {/* Mobile Slide-down Menu */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-t border-white/5 mt-3 pt-3 space-y-1.5"
+              className="mx-auto max-w-7xl overflow-hidden lg:hidden"
             >
-              {activeLinks.map((link) => {
-                const isActive = pathname === link.href;
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                      isActive
-                        ? "bg-white/10 text-white font-bold border border-white/10"
-                        : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
-                    }`}
-                  >
-                    <span>{link.icon}</span>
-                    <span>{link.label}</span>
+              <nav aria-label="Mobile navigation" className="space-y-1 border-t border-white/[0.08] pb-2 pt-3">
+                {activeLinks.map((link) => {
+                  const active = isLinkActive(pathname, link.href);
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      aria-current={active ? "page" : undefined}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold ${
+                        active ? "bg-white/[0.08] text-[#f7f3eb]" : "text-[#8f98a6] hover:bg-white/[0.05] hover:text-[#f7f3eb]"
+                      }`}
+                    >
+                      <span className="w-5 text-center text-[#e9b65c]" aria-hidden="true">{link.icon}</span>
+                      {link.label}
+                    </Link>
+                  );
+                })}
+                {!isAuthenticated && (
+                  <Link href="/auth" onClick={() => setMobileMenuOpen(false)} className="mt-2 block rounded-xl bg-[#e77a9b] px-4 py-3 text-center text-sm font-bold text-[#230f19]">
+                    Get started
                   </Link>
-                );
-              })}
-
-              {!isAuthenticated && (
-                <div className="pt-2 border-t border-white/5 flex gap-2">
-                  <Link
-                    href="/auth"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex-1 text-center py-2.5 rounded-xl bg-white/5 text-xs font-bold text-white border border-white/10"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/auth"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex-1 text-center py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-xs font-bold text-white shadow"
-                  >
-                    Register
-                  </Link>
-                </div>
-              )}
+                )}
+              </nav>
             </motion.div>
           )}
         </AnimatePresence>
       </header>
 
-      {/* Persistent Bottom Mobile Navigation Bar */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0d0d0f]/95 backdrop-blur-xl border-t border-white/5 px-4 py-2.5 flex justify-around items-center pb-safe">
-        {isAuthenticated ? (
-          <>
+      <nav aria-label="Quick navigation" className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-white/10 bg-[#080b10]/95 px-3 py-2.5 backdrop-blur-xl lg:hidden">
+        {(isAuthenticated
+          ? [
+              { label: "Dex", href: "/collection", icon: "▦" },
+              { label: "Recipes", href: "/recipes", icon: "✦" },
+              { label: "Booster", href: "/dashboard", icon: "◈" },
+              { label: "Kitchen", href: "/crafting", icon: "♨" },
+              { label: "Profile", href: "/profile", icon: "◉" },
+            ]
+          : guestNavLinks
+        ).map((link) => {
+          const active = isLinkActive(pathname, link.href);
+          return (
             <Link
-              href="/collection"
-              className={`flex flex-col items-center gap-0.5 text-xs transition-colors ${
-                pathname === "/collection" ? "text-pink-400 font-bold" : "text-gray-400 hover:text-white"
+              key={link.href}
+              href={link.href}
+              aria-current={active ? "page" : undefined}
+              className={`flex min-w-14 flex-col items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-semibold transition ${
+                active ? "text-[#e9b65c]" : "text-[#687483] hover:text-[#f7f3eb]"
               }`}
             >
-              <span className="text-lg">📖</span>
-              <span className="text-[10px]">Dex</span>
+              <span className="text-lg leading-none" aria-hidden="true">{link.icon}</span>
+              {link.label}
             </Link>
-
-            <Link
-              href="/recipes"
-              className={`flex flex-col items-center gap-0.5 text-xs transition-colors ${
-                pathname === "/recipes" ? "text-pink-400 font-bold" : "text-gray-400 hover:text-white"
-              }`}
-            >
-              <span className="text-lg">🍲</span>
-              <span className="text-[10px]">Recipes</span>
-            </Link>
-
-            <Link
-              href="/dashboard"
-              className={`flex flex-col items-center gap-0.5 text-xs transition-colors ${
-                pathname === "/dashboard"
-                  ? "text-purple-400 font-bold scale-110 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              <span className="text-lg">🎴</span>
-              <span className="text-[10px]">Booster</span>
-            </Link>
-
-            <Link
-              href="/crafting"
-              className={`flex flex-col items-center gap-0.5 text-xs transition-colors ${
-                pathname === "/crafting" ? "text-orange-400 font-bold" : "text-gray-400 hover:text-white"
-              }`}
-            >
-              <span className="text-lg">🍳</span>
-              <span className="text-[10px]">Kitchen</span>
-            </Link>
-
-            <Link
-              href="/test-kitchen"
-              className={`flex flex-col items-center gap-0.5 text-xs transition-colors ${
-                pathname === "/test-kitchen" ? "text-cyan-400 font-bold" : "text-gray-400 hover:text-white"
-              }`}
-            >
-              <span className="text-lg">🔬</span>
-              <span className="text-[10px]">Lab</span>
-            </Link>
-
-            <Link
-              href="/profile"
-              className={`flex flex-col items-center gap-0.5 text-xs transition-colors ${
-                pathname === "/profile" ? "text-purple-400 font-bold" : "text-gray-400 hover:text-white"
-              }`}
-            >
-              <span className="text-lg">👤</span>
-              <span className="text-[10px]">Profile</span>
-            </Link>
-          </>
-        ) : (
-          <>
-            <Link
-              href="/"
-              className={`flex flex-col items-center gap-0.5 text-xs transition-colors ${
-                pathname === "/" ? "text-pink-400 font-bold" : "text-gray-400 hover:text-white"
-              }`}
-            >
-              <span className="text-lg">🏠</span>
-              <span className="text-[10px]">Home</span>
-            </Link>
-
-            <Link
-              href="/collection"
-              className={`flex flex-col items-center gap-0.5 text-xs transition-colors ${
-                pathname === "/collection" ? "text-pink-400 font-bold" : "text-gray-400 hover:text-white"
-              }`}
-            >
-              <span className="text-lg">📖</span>
-              <span className="text-[10px]">The Dex</span>
-            </Link>
-
-            <Link
-              href="/recipes"
-              className={`flex flex-col items-center gap-0.5 text-xs transition-colors ${
-                pathname === "/recipes" ? "text-pink-400 font-bold" : "text-gray-400 hover:text-white"
-              }`}
-            >
-              <span className="text-lg">🍲</span>
-              <span className="text-[10px]">Recipes</span>
-            </Link>
-
-            <Link
-              href="/auth"
-              className="flex flex-col items-center gap-0.5 text-xs text-purple-400 font-bold"
-            >
-              <span className="text-lg">🔑</span>
-              <span className="text-[10px]">Sign In</span>
-            </Link>
-          </>
-        )}
+          );
+        })}
       </nav>
     </>
   );

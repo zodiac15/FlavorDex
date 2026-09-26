@@ -53,7 +53,7 @@ export default function SwipeDeck({ initialCards }: { initialCards?: BoosterCard
             <p className="text-6xl mb-4">🎉</p>
             <p className="text-xl font-bold font-display text-white mb-2">Pack Complete!</p>
             <p className="text-gray-400">
-              You collected <span className="text-purple-400 font-bold">{collected.filter(c => c.type === "ingredient").length} ingredients</span> and <span className="text-amber-400 font-bold">{collected.filter(c => c.type === "recipe").length} recipes</span>
+              You collected <span className="font-bold text-[#b6a0f2]">{collected.filter(c => c.type === "ingredient").length} ingredients</span> and <span className="font-bold text-[#e9b65c]">{collected.filter(c => c.type === "recipe").length} recipes</span>
             </p>
           </motion.div>
         )}

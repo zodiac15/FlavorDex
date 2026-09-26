@@ -190,7 +190,7 @@ export default function RecipeDiscoveryPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0d0d0f] text-white flex flex-col font-sans pb-28 md:pb-12 selection:bg-pink-500/30">
+    <div className="app-page flex min-h-screen flex-col pb-28 md:pb-12 selection:bg-[#e77a9b]/30">
       {/* Universal Navbar */}
       <Navbar />
 
@@ -201,17 +201,17 @@ export default function RecipeDiscoveryPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-full bg-purple-950 border border-purple-500/50 text-purple-200 text-xs md:text-sm font-semibold shadow-2xl backdrop-blur-md"
+            className="surface fixed left-1/2 top-20 z-50 -translate-x-1/2 rounded-full px-6 py-3 text-xs font-semibold text-[#d9e2f5] shadow-2xl backdrop-blur-md md:text-sm"
           >
             {goalFeedback}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <main className="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">
+      <main className="page-wrap max-w-7xl flex-1">
         {/* Hero & Search Header */}
-        <section className="mb-10 text-center relative">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-pink-600/20 via-purple-600/20 to-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
+        <section className="page-hero text-center">
+          <div className="absolute left-1/2 top-1/2 h-[300px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#e77a9b]/15 via-[#b6a0f2]/10 to-[#7c9ff2]/10 blur-[120px] pointer-events-none" />
 
           <motion.div
             initial={{ opacity: 0, y: 15 }}
@@ -219,14 +219,14 @@ export default function RecipeDiscoveryPage() {
             transition={{ duration: 0.5, ease: easeOut }}
             className="relative z-10"
           >
-            <span className="inline-block px-3 py-1 mb-3 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-bold uppercase tracking-widest">
-              🍳 Recipe Quest & Mystery Codex
+            <span className="page-eyebrow">
+              Recipe index
             </span>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3 font-display">
-              Discover <span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-400 to-indigo-400">Recipes</span>
+            <h1 className="page-title">
+              Find your next dish.
             </h1>
-            <p className="text-gray-400 text-sm md:text-base max-w-2xl mx-auto">
-              Browse partial recipe clues from the global culinary codex. Search the web, import the recipe link in <strong className="text-orange-400">The Kitchen</strong>, and unlock complete secrets + ingredients into your Dex!
+            <p className="page-copy">
+              Browse recipe clues, check what your pantry can make, and import any missing dish through the Kitchen.
             </p>
           </motion.div>
 
@@ -237,8 +237,8 @@ export default function RecipeDiscoveryPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by recipe title, cuisine, or ingredients (e.g. Pasta, Garlic, Tikka)..."
-                className="w-full bg-[#151518]/90 border border-white/10 focus:border-pink-500 rounded-2xl py-4 pl-12 pr-12 text-sm text-white placeholder-gray-500 shadow-2xl focus:outline-none transition-all"
+                placeholder="Search recipes, cuisines, or ingredients"
+                className="control-input w-full py-4 pl-12 pr-12 text-sm shadow-2xl transition-all"
               />
               <span className="absolute left-4 text-gray-500 text-lg">🔍</span>
               {searchQuery && (
@@ -262,8 +262,8 @@ export default function RecipeDiscoveryPage() {
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap border ${
                     active
-                      ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white border-transparent shadow-[0_0_15px_rgba(236,72,153,0.3)]"
-                      : "bg-[#151518]/60 text-gray-400 border-white/5 hover:border-white/20 hover:text-white"
+                      ? "bg-[#e77a9b] text-[#230f19] border-transparent"
+                      : "bg-[#151d27]/60 text-[#8f98a6] border-white/10 hover:border-white/20 hover:text-white"
                   }`}
                 >
                   {cat}
@@ -281,7 +281,7 @@ export default function RecipeDiscoveryPage() {
                 className={`px-3 py-1.5 rounded-lg border font-semibold transition-all ${
                   selectedDifficulty === null
                     ? "bg-white/10 text-white border-white/20"
-                    : "bg-[#151518]/40 text-gray-500 border-white/5 hover:text-gray-300"
+                    : "bg-[#151d27]/40 text-[#687483] border-white/5 hover:text-[#c8ced7]"
                 }`}
               >
                 All
@@ -292,8 +292,8 @@ export default function RecipeDiscoveryPage() {
                   onClick={() => setSelectedDifficulty(selectedDifficulty === stars ? null : stars)}
                   className={`px-3 py-1.5 rounded-lg border font-semibold transition-all flex items-center gap-1 ${
                     selectedDifficulty === stars
-                      ? "bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
-                      : "bg-[#151518]/40 text-gray-500 border-white/5 hover:text-gray-300"
+                      ? "bg-[#e9b65c]/20 text-[#f0d58c] border-[#e9b65c]/40 shadow"
+                      : "bg-[#151d27]/40 text-[#687483] border-white/5 hover:text-[#c8ced7]"
                   }`}
                 >
                   <span>{stars}★</span>
@@ -306,8 +306,8 @@ export default function RecipeDiscoveryPage() {
                 onClick={() => setUnlockedOnly(!unlockedOnly)}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border transition-all ${
                   unlockedOnly
-                    ? "bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)] font-bold"
-                    : "bg-[#151518]/60 border-white/5 text-gray-400 hover:text-white"
+                    ? "bg-[#e9b65c]/20 border-[#e9b65c]/40 text-[#f0d58c] shadow font-bold"
+                    : "bg-[#151d27]/60 border-white/5 text-[#8f98a6] hover:text-white"
                 }`}
               >
                 <span>✨</span>
@@ -319,7 +319,7 @@ export default function RecipeDiscoveryPage() {
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border transition-all ${
                   craftableOnly
                     ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)] font-bold"
-                    : "bg-[#151518]/60 border-white/5 text-gray-400 hover:text-white"
+                    : "bg-[#151d27]/60 border-white/5 text-[#8f98a6] hover:text-white"
                 }`}
               >
                 <span>⚡</span>
@@ -339,7 +339,7 @@ export default function RecipeDiscoveryPage() {
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-[#151518]/40 border border-white/5 rounded-2xl h-80 animate-pulse flex flex-col p-4"
+                className="surface-soft flex h-80 animate-pulse flex-col p-4"
               >
                 <div className="w-full h-40 bg-white/5 rounded-xl mb-4" />
                 <div className="w-3/4 h-5 bg-white/5 rounded mb-2" />
@@ -348,7 +348,7 @@ export default function RecipeDiscoveryPage() {
             ))}
           </div>
         ) : filteredRecipes.length === 0 ? (
-          <div className="text-center py-20 bg-[#151518]/30 rounded-3xl border border-white/5 max-w-2xl mx-auto p-8">
+          <div className="surface-soft mx-auto max-w-2xl p-8 py-20 text-center">
             <div className="text-5xl mb-4">🔍</div>
             <h3 className="text-xl font-bold text-white mb-2">No recipes found</h3>
             <p className="text-gray-400 text-sm mb-6">
@@ -388,10 +388,10 @@ export default function RecipeDiscoveryPage() {
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.25, ease: easeOut }}
                     whileHover={{ y: -4 }}
-                    className={`bg-[#151518]/80 hover:bg-[#18181f] border rounded-2xl overflow-hidden flex flex-col group transition-all shadow-lg cursor-pointer relative ${
+                    className={`surface-soft hover:bg-[#18212c] border rounded-2xl overflow-hidden flex flex-col group transition-all shadow-lg cursor-pointer relative ${
                       isUnlocked
                         ? "border-emerald-500/30 hover:border-emerald-400 hover:shadow-[0_10px_30px_rgba(16,185,129,0.15)]"
-                        : "border-white/5 hover:border-amber-500/30 hover:shadow-[0_10px_30px_rgba(245,158,11,0.1)]"
+                        : "border-white/5 hover:border-[#e9b65c]/30 hover:shadow-lg"
                     }`}
                     onClick={() => setSelectedRecipe(recipe)}
                   >
@@ -405,14 +405,14 @@ export default function RecipeDiscoveryPage() {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-5xl bg-gradient-to-br from-purple-900/40 to-pink-900/40">
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#b6a0f2]/20 to-[#e77a9b]/20 text-5xl">
                           🍲
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-[#151518] via-transparent to-black/30" />
 
                       {/* Difficulty Badge */}
-                      <div className="absolute top-3 left-3 bg-[#0d0d0f]/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1 text-[11px] font-bold text-amber-300">
+                      <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full border border-white/10 bg-[#0d131a]/80 px-2.5 py-1 text-[11px] font-bold text-[#f0d58c] backdrop-blur-md">
                         <span>★</span>
                         <span>{recipe.difficulty}/5</span>
                       </div>
@@ -424,13 +424,13 @@ export default function RecipeDiscoveryPage() {
                             <span>✨</span> Unlocked
                           </span>
                         ) : (
-                          <span className="bg-amber-500/90 text-black px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-md flex items-center gap-1">
+                          <span className="flex items-center gap-1 rounded-full bg-[#e9b65c]/90 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#17140f] shadow-md">
                             <span>🔒</span> Partial
                           </span>
                         )}
 
                         {isGoal && (
-                          <span className="bg-purple-500/90 text-white px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider shadow">
+                          <span className="rounded-full bg-[#b6a0f2]/90 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#17140f] shadow">
                             🎯 Goal
                           </span>
                         )}
@@ -451,12 +451,12 @@ export default function RecipeDiscoveryPage() {
                           ))}
                       </div>
 
-                      <h3 className="font-bold text-base text-white mb-2 line-clamp-1 group-hover:text-pink-400 transition-colors">
+                      <h3 className="mb-2 line-clamp-1 text-base font-bold text-white transition-colors group-hover:text-[#e77a9b]">
                         {recipe.title}
                       </h3>
 
                       {!isUnlocked && (
-                        <p className="text-[11px] text-amber-300/80 mb-3 flex items-center gap-1">
+                        <p className="mb-3 flex items-center gap-1 text-[11px] text-[#f0d58c]/80">
                           <span>🔒</span>
                           <span>{recipe.locked_count || 0} mystery ingredients hidden</span>
                         </p>
@@ -473,7 +473,7 @@ export default function RecipeDiscoveryPage() {
                               owned === total && total > 0
                                 ? "text-emerald-400"
                                 : owned > 0
-                                ? "text-amber-400"
+                                ? "text-[#e9b65c]"
                                 : "text-gray-500"
                             }`}
                           >
@@ -488,10 +488,10 @@ export default function RecipeDiscoveryPage() {
                           <div
                             className={`h-full transition-all duration-300 ${
                               owned === total && total > 0
-                                ? "bg-gradient-to-r from-emerald-500 to-teal-400"
+                                ? "bg-gradient-to-r from-[#84c9a4] to-[#7c9ff2]"
                                 : isUnlocked
-                                ? "bg-gradient-to-r from-pink-500 to-purple-500"
-                                : "bg-gradient-to-r from-amber-500 to-orange-500"
+                                ? "bg-gradient-to-r from-[#e77a9b] to-[#b6a0f2]"
+                                : "bg-gradient-to-r from-[#e9b65c] to-[#f0d58c]"
                             }`}
                             style={{ width: `${total > 0 ? Math.min((owned / total) * 100, 100) : 0}%` }}
                           />
@@ -521,7 +521,7 @@ export default function RecipeDiscoveryPage() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               transition={{ duration: 0.3, ease: easeOut }}
-              className="bg-[#151518] border border-white/10 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl my-auto"
+              className="surface my-auto flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header Cover */}
@@ -533,7 +533,7 @@ export default function RecipeDiscoveryPage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-7xl bg-gradient-to-br from-purple-900/50 to-pink-900/50">
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#b6a0f2]/20 to-[#e77a9b]/20 text-7xl">
                     🍲
                   </div>
                 )}
@@ -554,11 +554,11 @@ export default function RecipeDiscoveryPage() {
                           ✨ Full Recipe Unlocked
                         </span>
                       ) : (
-                        <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-black text-xs font-black uppercase">
+                        <span className="rounded-full bg-[#e9b65c] px-2.5 py-0.5 text-xs font-black uppercase text-[#17140f]">
                           🔒 Partial Recipe — Locked
                         </span>
                       )}
-                      <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">
+                      <span className="rounded-full border border-[#e9b65c]/40 bg-[#e9b65c]/20 px-2.5 py-0.5 text-xs font-bold text-[#f0d58c]">
                         ★ {selectedRecipe.difficulty}/5 Difficulty
                       </span>
                     </div>
@@ -571,14 +571,14 @@ export default function RecipeDiscoveryPage() {
               <div className="p-6 overflow-y-auto space-y-6 flex-1">
                 {/* Partial Recipe Callout Banner */}
                 {!selectedRecipe.is_unlocked && (
-                  <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-pink-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-[#e9b65c]/30 bg-gradient-to-r from-[#e9b65c]/10 via-[#e77a9b]/10 to-[#b6a0f2]/10 p-4 sm:flex-row sm:items-center">
                     <div>
-                      <div className="flex items-center gap-2 font-bold text-amber-300 text-sm">
+                      <div className="flex items-center gap-2 text-sm font-bold text-[#f0d58c]">
                         <span>🔒</span>
                         <span>Unlock Full Recipe Secrets</span>
                       </div>
                       <p className="text-xs text-gray-300 mt-1">
-                        Find this recipe on the web, copy its link, and import it into <strong className="text-orange-300">The Kitchen</strong>. All {selectedRecipe.total_ingredients_count || 0} ingredients and full chef instructions will be added to your account!
+                        Find this recipe on the web, copy its link, and import it into <strong className="text-[#e9b65c]">The Kitchen</strong>. All {selectedRecipe.total_ingredients_count || 0} ingredients and full chef instructions will be added to your account!
                       </p>
                     </div>
 
@@ -596,7 +596,7 @@ export default function RecipeDiscoveryPage() {
                 {/* Ingredients Checklist */}
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-pink-400">
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-[#e77a9b]">
                       Recipe Ingredients ({getOwnedIngredientCount(selectedRecipe).total})
                     </h3>
                     <span className="text-xs text-gray-400">
@@ -612,15 +612,15 @@ export default function RecipeDiscoveryPage() {
                         return (
                           <div
                             key={idx}
-                            className="p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-300/60 flex items-center justify-between backdrop-blur-sm"
+                            className="flex items-center justify-between rounded-xl border border-[#e9b65c]/20 bg-[#e9b65c]/5 p-3 text-[#f0d58c]/60 backdrop-blur-sm"
                           >
                             <div className="flex items-center gap-2.5">
-                              <span className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center text-[10px] font-bold text-amber-400">
+                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#e9b65c]/20 text-[10px] font-bold text-[#e9b65c]">
                                 🔒
                               </span>
                               <span className="font-mono text-xs italic">??? Mystery Ingredient</span>
                             </div>
-                            <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#e9b65c]">
                               Locked
                             </span>
                           </div>
@@ -659,14 +659,14 @@ export default function RecipeDiscoveryPage() {
                 {/* Instructions */}
                 {selectedRecipe.instructions && (
                   <div>
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-purple-400 mb-3">
+                    <h3 className="mb-3 text-sm font-bold uppercase tracking-widest text-[#b6a0f2]">
                       Cooking Instructions
                     </h3>
                     <div
                       className={`p-4 rounded-2xl border text-sm leading-relaxed whitespace-pre-line space-y-2 ${
                         selectedRecipe.is_unlocked
-                          ? "bg-[#0d0d0f]/60 border-white/5 text-gray-300"
-                          : "bg-amber-500/5 border-amber-500/20 text-amber-200/90 font-mono text-xs"
+                          ? "bg-[#0d131a]/60 border-white/5 text-[#c8ced7]"
+                          : "bg-[#e9b65c]/5 border-[#e9b65c]/20 text-[#f0d58c]/90 font-mono text-xs"
                       }`}
                     >
                       {selectedRecipe.instructions}
@@ -676,12 +676,12 @@ export default function RecipeDiscoveryPage() {
               </div>
 
               {/* Modal Footer Actions */}
-              <div className="p-4 bg-[#0d0d0f]/80 border-t border-white/5 px-6 flex items-center justify-between gap-4">
+              <div className="flex items-center justify-between gap-4 border-t border-white/10 bg-[#0d131a]/80 p-4 px-6">
                 <button
                   onClick={() => handleToggleGoal(selectedRecipe)}
                   className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 border ${
                     activeGoalRecipeIds.has(selectedRecipe.id)
-                      ? "bg-purple-500/20 text-purple-300 border-purple-500/50"
+                      ? "bg-[#b6a0f2]/20 text-[#d6cafa] border-[#b6a0f2]/50"
                       : "bg-white/5 hover:bg-white/10 text-white border-white/10"
                   }`}
                 >
@@ -695,14 +695,14 @@ export default function RecipeDiscoveryPage() {
                   {selectedRecipe.is_unlocked ? (
                     <Link
                       href="/crafting"
-                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs uppercase tracking-wider shadow-lg hover:opacity-95 transition-opacity"
+                      className="brand-button rounded-xl px-6 py-2.5 text-xs font-bold uppercase tracking-wider shadow-lg transition-opacity hover:opacity-95"
                     >
                       Cook in Kitchen →
                     </Link>
                   ) : (
                     <Link
                       href="/crafting"
-                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-black font-extrabold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(245,158,11,0.4)] hover:opacity-95 transition-opacity flex items-center gap-1.5"
+                      className="rounded-xl bg-[#e9b65c] px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider text-[#17140f] shadow-lg transition-opacity hover:opacity-95 flex items-center gap-1.5"
                     >
                       <span>🍳</span>
                       <span>Unlock in Kitchen →</span>

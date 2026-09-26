@@ -1,288 +1,297 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import Navbar from '../components/Navbar';
-import { apiUrl } from '../lib/api';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import Navbar from "../components/Navbar";
+import { apiUrl } from "../lib/api";
 
-const FloatingParticles = () => {
-  const [particles, setParticles] = useState<{ id: number; x: number; y: number; size: number; duration: number }[]>([]);
+type PublicStats = {
+  ingredients: number;
+  recipes: number;
+  users: number;
+};
 
-  useEffect(() => {
-    const newParticles = Array.from({ length: 20 }).map((_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 6 + 2,
-      duration: Math.random() * 20 + 10,
-    }));
-    setParticles(newParticles);
-  }, []);
+const features = [
+  {
+    number: "01",
+    icon: "🎴",
+    title: "Open a daily pack",
+    description: "Pull ingredient cards, chase rare finds, and keep your streak alive.",
+    accent: "from-[#e77a9b] to-[#ba4d76]",
+  },
+  {
+    number: "02",
+    icon: "🍳",
+    title: "Build the recipe",
+    description: "Turn your pantry into dishes by combining cards in the Kitchen.",
+    accent: "from-[#e9b65c] to-[#c97838]",
+  },
+  {
+    number: "03",
+    icon: "🔬",
+    title: "Shape the Dex",
+    description: "Test unknown ingredients and help the community make better calls.",
+    accent: "from-[#8ea4f4] to-[#6174d6]",
+  },
+];
 
+const rarities = [
+  { name: "Common", detail: "Everyday staples", color: "#8d9aaa", tone: "bg-[#8d9aaa]" },
+  { name: "Uncommon", detail: "Worth a second look", color: "#a6c36f", tone: "bg-[#a6c36f]" },
+  { name: "Rare", detail: "Harder to find", color: "#7c9ff2", tone: "bg-[#7c9ff2]" },
+  { name: "Epic", detail: "Kitchen game changer", color: "#b58ae7", tone: "bg-[#b58ae7]" },
+  { name: "Legendary", detail: "Collector's prize", color: "#efb75d", tone: "bg-[#efb75d]" },
+  { name: "Mythic", detail: "Almost folklore", color: "#e77a9b", tone: "bg-[#e77a9b]" },
+];
+
+const reveal = {
+  hidden: { opacity: 0, y: 18 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" as const } },
+};
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1 } },
+};
+
+function Stat({ value, label }: { value: number | null; label: string }) {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full bg-pink-500/30 blur-[1px]"
-          style={{
-            width: p.size,
-            height: p.size,
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-          }}
-          animate={{
-            y: [0, -100, 0],
-            x: [0, Math.random() * 50 - 25, 0],
-            opacity: [0.2, 0.8, 0.2],
-          }}
-          transition={{
-            duration: p.duration,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
-      ))}
+    <div className="flex items-center gap-3 border-l border-white/10 pl-4 first:border-l-0 first:pl-0">
+      <span className="font-display text-2xl font-bold tracking-tight text-[#f7f3eb]">
+        {value === null ? "—" : value.toLocaleString()}
+      </span>
+      <span className="max-w-20 text-[11px] font-medium leading-tight text-[#8f98a6]">{label}</span>
     </div>
   );
-};
-
-const StatCounter = ({ end, label }: { end: number, label: string }) => {
-  const [count, setCount] = useState(0);
-
-  return (
-    <motion.div 
-      className="flex flex-col items-center justify-center p-6"
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      onViewportEnter={() => {
-        let start = 0;
-        const duration = 2000;
-        const increment = end / (duration / 16);
-        const timer = setInterval(() => {
-          start += increment;
-          if (start >= end) {
-            setCount(end);
-            clearInterval(timer);
-          } else {
-            setCount(Math.floor(start));
-          }
-        }, 16);
-      }}
-    >
-      <div className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400 mb-2">
-        {count.toLocaleString()}{label === 'Collectors (K)' ? 'K+' : '+'}
-      </div>
-      <div className="text-gray-400 text-sm tracking-wider uppercase font-medium">{label === 'Collectors (K)' ? 'Collectors' : label}</div>
-    </motion.div>
-  );
-};
+}
 
 export default function Home() {
-  const [stats, setStats] = useState({ ingredients: 0, recipes: 0, users: 0 });
+  const [stats, setStats] = useState<PublicStats | null>(null);
 
   useEffect(() => {
-    fetch(apiUrl('/public/stats'))
-      .then(res => res.json())
-      .then(data => setStats(data))
-      .catch(console.error);
+    const controller = new AbortController();
+
+    fetch(apiUrl("/public/stats"), { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Stats request failed with status ${response.status}`);
+        }
+        return response.json() as Promise<PublicStats>;
+      })
+      .then(setStats)
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        console.error("Unable to load public stats", error);
+      });
+
+    return () => controller.abort();
   }, []);
 
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 40 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } }
-  };
-
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#0d0d0f] text-white selection:bg-pink-500/30 overflow-x-hidden font-sans">
-      {/* Navbar */}
-      {/* Universal Navbar */}
+    <div className="min-h-screen overflow-x-hidden bg-[#080b10] text-[#f7f3eb] selection:bg-[#e77a9b]/30">
       <Navbar />
 
-      <main className="pt-20">
-        {/* Hero Section */}
-        <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-          <FloatingParticles />
-          
-          {/* Radial Glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none" />
-          
-          <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={staggerContainer}
-            >
-              <motion.h1 
-                variants={fadeInUp}
-                className="text-6xl md:text-8xl font-black tracking-tight mb-6"
+      <main className="pb-24 lg:pb-0">
+        <section className="relative isolate overflow-hidden border-b border-white/[0.07]">
+          <div className="market-grid absolute inset-0 -z-10 opacity-50" />
+          <div className="absolute -left-40 top-24 -z-10 h-[30rem] w-[30rem] rounded-full bg-[#ba4d76]/15 blur-[120px]" />
+          <div className="absolute -right-32 top-12 -z-10 h-[26rem] w-[26rem] rounded-full bg-[#6174d6]/15 blur-[110px]" />
+          <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+            <span className="sparkle sparkle-one" />
+            <span className="sparkle sparkle-two" />
+            <span className="sparkle sparkle-three" />
+          </div>
+
+          <div className="mx-auto grid min-h-[710px] max-w-7xl items-center gap-14 px-6 py-20 lg:grid-cols-[1.05fr_0.95fr] lg:px-10">
+            <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-2xl">
+              <motion.div variants={reveal} className="mb-7 flex items-center gap-3 text-xs font-semibold tracking-[0.18em] text-[#e9b65c]">
+                <span className="h-px w-8 bg-[#e9b65c]" />
+                FlavorDex field guide
+              </motion.div>
+              <motion.h1
+                variants={reveal}
+                className="font-display max-w-xl text-5xl font-bold leading-[0.98] tracking-[-0.045em] text-[#f7f3eb] sm:text-7xl lg:text-[5.8rem]"
               >
-                Collect. <span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-pulse">Cook.</span> Conquer.
+                Your pantry,
+                <span className="block text-[#e77a9b]">now collectible.</span>
               </motion.h1>
-              
-              <motion.p 
-                variants={fadeInUp}
-                className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-12 font-light"
-              >
-                Discover rare ingredients, master complex recipes, and build your ultimate culinary collection in the world's first gamified cooking platform.
+              <motion.p variants={reveal} className="mt-7 max-w-lg text-base leading-7 text-[#a4acb8] sm:text-lg">
+                Find unusual ingredients, unlock recipes, and turn every meal into a small adventure.
               </motion.p>
-              
-              <motion.div variants={fadeInUp}>
-                <Link href="/auth" className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold rounded-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 transition-all shadow-[0_0_40px_rgba(219,39,119,0.4)] hover:shadow-[0_0_60px_rgba(219,39,119,0.6)] transform hover:-translate-y-1">
-                  Open Your First Pack →
+              <motion.div variants={reveal} className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/auth"
+                  className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[#e77a9b] px-6 text-sm font-bold text-[#230f19] shadow-[0_12px_40px_rgba(231,122,155,0.22)] transition hover:-translate-y-0.5 hover:bg-[#f08aaa] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e9b65c]"
+                >
+                  Open today&apos;s pack
+                </Link>
+                <Link
+                  href="/collection"
+                  className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/15 bg-white/[0.03] px-6 text-sm font-semibold text-[#f7f3eb] transition hover:border-white/30 hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e9b65c]"
+                >
+                  Browse the Dex
                 </Link>
               </motion.div>
+              <motion.div variants={reveal} className="mt-14 flex flex-wrap gap-x-7 gap-y-4">
+                <Stat value={stats?.ingredients ?? null} label="ingredients catalogued" />
+                <Stat value={stats?.recipes ?? null} label="recipes to unlock" />
+                <Stat value={stats?.users ?? null} label="active collectors" />
+              </motion.div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 28, rotate: 2 }}
+              animate={{ opacity: 1, x: 0, rotate: 0 }}
+              transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
+              className="relative mx-auto w-full max-w-[430px]"
+            >
+              <div className="absolute -inset-5 rounded-[2rem] bg-[#e77a9b]/10 blur-2xl" />
+              <div className="relative rotate-1 rounded-[1.6rem] border border-white/15 bg-[#121820]/95 p-4 shadow-2xl shadow-black/40">
+                <div className="rounded-[1.1rem] border border-white/10 bg-[#1b222c] p-5">
+                  <div className="flex items-start justify-between border-b border-white/10 pb-5">
+                    <div>
+                      <p className="text-[10px] font-semibold tracking-[0.2em] text-[#e9b65c]">Daily pull</p>
+                      <h2 className="mt-2 font-display text-3xl font-bold tracking-tight">Market basket</h2>
+                    </div>
+                    <span className="rounded-full border border-[#a6c36f]/40 bg-[#a6c36f]/10 px-3 py-1 text-[11px] font-semibold text-[#c7e09a]">
+                      Fresh
+                    </span>
+                  </div>
+                  <div className="space-y-3 py-5">
+                    {[
+                      { icon: "🍋", name: "Meyer lemon", meta: "Rare", color: "#7c9ff2" },
+                      { icon: "🌿", name: "Thai basil", meta: "Uncommon", color: "#a6c36f" },
+                      { icon: "🌶️", name: "Aji amarillo", meta: "Epic", color: "#b58ae7" },
+                    ].map((item) => (
+                      <div key={item.name} className="flex items-center gap-3 rounded-xl bg-white/[0.045] px-3 py-3">
+                        <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#0e131a] text-xl">{item.icon}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-[#f7f3eb]">{item.name}</p>
+                          <p className="mt-0.5 text-xs text-[#8993a1]">Ingredient card</p>
+                        </div>
+                        <span className="text-xs font-semibold" style={{ color: item.color }}>{item.meta}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between border-t border-white/10 pt-4 text-xs text-[#8993a1]">
+                    <span>Pack no. 0148</span>
+                    <span className="text-[#f7f3eb]">3 cards found</span>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -bottom-5 -left-5 rounded-xl border border-[#e9b65c]/30 bg-[#17140f]/95 px-4 py-3 shadow-xl">
+                <p className="text-[10px] font-semibold tracking-[0.15em] text-[#e9b65c]">Collection streak</p>
+                <p className="mt-1 font-display text-xl font-bold text-[#f7f3eb]">07 days</p>
+              </div>
             </motion.div>
           </div>
         </section>
 
-        {/* Stats Bar */}
-        <section className="relative z-20 max-w-6xl mx-auto px-6 -mt-20">
-          <div className="bg-[#151518]/80 backdrop-blur-xl border border-white/5 rounded-3xl p-2 shadow-2xl">
-            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/5">
-              <StatCounter end={stats.ingredients} label="Ingredients" />
-              <StatCounter end={stats.recipes} label="Recipes" />
-              <StatCounter end={stats.users} label="Collectors" />
-              <div className="flex flex-col items-center justify-center p-6">
-                 <motion.div 
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400 mb-2"
-                 >
-                    6
-                 </motion.div>
-                 <div className="text-gray-400 text-sm tracking-wider uppercase font-medium">Rarity Tiers</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section className="py-32 max-w-7xl mx-auto px-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">How It Works</h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-pink-500 to-purple-500 mx-auto rounded-full" />
-          </motion.div>
-
-          <motion.div 
-            variants={staggerContainer}
+        <section className="mx-auto max-w-7xl px-6 py-24 lg:px-10 lg:py-32">
+          <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={stagger}
+            className="mb-12 max-w-xl"
           >
-            {[
-              { icon: '🎴', title: 'Daily Booster Packs', desc: 'Open daily packs to discover new ingredient cards with varying rarities.', color: 'border-t-pink-500' },
-              { icon: '🍳', title: 'Craft Recipes', desc: 'Combine ingredients to unlock recipes. Drag and drop your cards into the cauldron.', color: 'border-t-purple-500' },
-              { icon: '🔬', title: 'Test Kitchen', desc: 'Help identify unknown ingredients. Vote as a community to expand the database.', color: 'border-t-indigo-500' }
-            ].map((feature, idx) => (
-              <motion.div 
-                key={idx}
-                variants={fadeInUp}
-                className={`bg-[#151518]/50 backdrop-blur-sm border border-white/5 rounded-2xl p-8 hover:bg-[#1a1a1f]/80 transition-colors border-t-2 ${feature.color}`}
+            <motion.p variants={reveal} className="text-xs font-semibold tracking-[0.18em] text-[#e77a9b]">The loop</motion.p>
+            <motion.h2 variants={reveal} className="mt-3 font-display text-4xl font-bold tracking-[-0.03em] sm:text-5xl">
+              Collect with a reason.
+            </motion.h2>
+            <motion.p variants={reveal} className="mt-4 text-base leading-7 text-[#8f98a6]">
+              Every card gives your next cooking session somewhere to go.
+            </motion.p>
+          </motion.div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={stagger}
+            className="grid gap-4 md:grid-cols-3"
+          >
+            {features.map((feature) => (
+              <motion.article
+                key={feature.number}
+                variants={reveal}
+                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#10161e] p-7 transition duration-300 hover:-translate-y-1 hover:border-white/20"
               >
-                <div className="text-5xl mb-6">{feature.icon}</div>
-                <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
-                <p className="text-gray-400 leading-relaxed">{feature.desc}</p>
-              </motion.div>
+                <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${feature.accent}`} />
+                <div className="flex items-start justify-between">
+                  <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/[0.06] text-2xl">{feature.icon}</span>
+                  <span className="font-mono text-xs text-[#667180]">{feature.number}</span>
+                </div>
+                <h3 className="mt-8 font-display text-2xl font-bold">{feature.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-[#8f98a6]">{feature.description}</p>
+              </motion.article>
             ))}
           </motion.div>
         </section>
 
-        {/* Rarity Showcase */}
-        <section className="py-20 bg-gradient-to-b from-transparent via-[#121215] to-transparent">
-          <div className="max-w-7xl mx-auto px-6">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-12 text-center md:text-left"
-            >
-              <h2 className="text-3xl font-bold">Chase The Rarity</h2>
-            </motion.div>
-            
-            <div className="flex overflow-x-auto pb-8 -mx-6 px-6 gap-6 snap-x hide-scrollbar">
-              {[
-                { name: 'Common', color: 'bg-gray-400', glow: 'shadow-gray-400/20' },
-                { name: 'Uncommon', color: 'bg-green-400', glow: 'shadow-green-400/20' },
-                { name: 'Rare', color: 'bg-blue-400', glow: 'shadow-blue-400/20' },
-                { name: 'Epic', color: 'bg-purple-400', glow: 'shadow-purple-400/20' },
-                { name: 'Legendary', color: 'bg-amber-400', glow: 'shadow-amber-400/20' },
-                { name: 'Mythic', color: 'bg-rose-500', glow: 'shadow-rose-500/20' }
-              ].map((rarity, idx) => (
-                <motion.div 
-                  key={idx}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
+        <section className="border-y border-white/[0.07] bg-[#0d1219]">
+          <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10 lg:py-28">
+            <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+              <div>
+                <p className="text-xs font-semibold tracking-[0.18em] text-[#e9b65c]">Card taxonomy</p>
+                <h2 className="mt-3 font-display text-4xl font-bold tracking-[-0.03em] sm:text-5xl">Chase the unusual.</h2>
+              </div>
+              <p className="max-w-xs text-sm leading-6 text-[#8f98a6]">Six tiers. One very good excuse to keep checking the pantry.</p>
+            </div>
+            <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              {rarities.map((rarity, index) => (
+                <motion.div
+                  key={rarity.name}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                  className={`snap-center shrink-0 w-40 h-56 rounded-xl bg-[#1a1a1f] border border-white/10 flex flex-col items-center justify-center relative overflow-hidden group shadow-lg ${rarity.glow}`}
+                  transition={{ delay: index * 0.06 }}
+                  className="group relative min-h-44 overflow-hidden rounded-xl border border-white/10 bg-[#151d27] p-4 transition hover:border-white/25"
                 >
-                  <div className={`absolute top-0 w-full h-1 ${rarity.color}`} />
-                  <div className={`w-3 h-3 rounded-full ${rarity.color} mb-4 shadow-[0_0_15px_currentColor]`} />
-                  <div className="font-bold tracking-wider">{rarity.name}</div>
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className={`absolute inset-x-0 top-0 h-1 ${rarity.tone}`} />
+                  <div className="flex h-full flex-col justify-between">
+                    <span className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-[#0b1016] text-sm font-bold" style={{ color: rarity.color }}>
+                      {index + 1}
+                    </span>
+                    <div>
+                      <h3 className="text-sm font-bold">{rarity.name}</h3>
+                      <p className="mt-1 text-xs leading-5 text-[#7f8997]">{rarity.detail}</p>
+                    </div>
+                  </div>
                 </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* CTA Footer */}
-        <footer className="pt-32 pb-12 relative overflow-hidden">
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-64 bg-pink-600/10 rounded-full blur-[100px] pointer-events-none" />
-          
-          <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-5xl font-black mb-8">Ready to start your journey?</h2>
-              <Link href="/auth" className="inline-flex items-center justify-center px-10 py-5 text-xl font-bold rounded-full bg-white text-black hover:bg-gray-200 transition-all shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:shadow-[0_0_50px_rgba(255,255,255,0.5)] transform hover:-translate-y-1 mb-24">
-                Begin Collecting
-              </Link>
-            </motion.div>
-            
-            <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between text-gray-500 text-sm">
-              <div>© 2026 FlavorDex. All rights reserved.</div>
-              <div className="flex gap-6 mt-4 md:mt-0">
-                <Link href="#" className="hover:text-white transition-colors">Privacy</Link>
-                <Link href="#" className="hover:text-white transition-colors">Terms</Link>
-                <Link href="#" className="hover:text-white transition-colors">Discord</Link>
-              </div>
+        <section className="relative overflow-hidden px-6 py-28 text-center lg:py-36">
+          <div className="absolute left-1/2 top-1/2 -z-10 h-72 w-[42rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#e77a9b]/10 blur-[100px]" />
+          <p className="text-xs font-semibold tracking-[0.18em] text-[#e77a9b]">Your next card is out there</p>
+          <h2 className="mx-auto mt-4 max-w-2xl font-display text-4xl font-bold tracking-[-0.04em] sm:text-6xl">
+            Make dinner more interesting.
+          </h2>
+          <p className="mx-auto mt-5 max-w-md text-base leading-7 text-[#8f98a6]">
+            Start with one pack. Build a collection that tastes like you.
+          </p>
+          <Link
+            href="/auth"
+            className="mt-9 inline-flex min-h-12 items-center justify-center rounded-xl bg-[#f7f3eb] px-7 text-sm font-bold text-[#121820] transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e9b65c]"
+          >
+            Start collecting
+          </Link>
+        </section>
+
+        <footer className="border-t border-white/[0.07] px-6 py-8 lg:px-10">
+          <div className="mx-auto flex max-w-7xl flex-col gap-4 text-xs text-[#667180] sm:flex-row sm:items-center sm:justify-between">
+            <span>© 2026 FlavorDex. Built for curious cooks.</span>
+            <div className="flex gap-5">
+              <Link href="#" className="transition hover:text-[#f7f3eb]">Privacy</Link>
+              <Link href="#" className="transition hover:text-[#f7f3eb]">Terms</Link>
+              <Link href="#" className="transition hover:text-[#f7f3eb]">Discord</Link>
             </div>
           </div>
         </footer>
       </main>
-      
-      <style dangerouslySetInnerHTML={{__html: `
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}} />
     </div>
   );
 }

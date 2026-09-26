@@ -32,9 +32,9 @@ export default function AuthPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0d0d0f] text-white flex items-center justify-center p-4 relative overflow-hidden">
+    <main className="app-page flex min-h-screen items-center justify-center overflow-hidden p-4">
       {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/15 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#e77a9b]/10 blur-[120px] pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -43,23 +43,24 @@ export default function AuthPage() {
         className="relative z-10 w-full max-w-md"
       >
         {/* Logo */}
-        <Link href="/" className="block text-center mb-10">
-          <h1 className="text-4xl font-black tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500">
-            FLAVORDEX
+        <Link href="/" className="mb-10 block text-center">
+          <div className="mx-auto grid h-11 w-11 place-items-center rounded-xl border border-[#e77a9b]/50 bg-[#e77a9b]/10 font-display text-lg font-bold text-[#f08aaa]">F</div>
+          <h1 className="mt-4 font-display text-3xl font-bold tracking-[-0.04em] text-[#f7f3eb]">
+            Flavor<span className="text-[#e77a9b]">Dex</span>
           </h1>
-          <p className="text-gray-500 text-sm mt-2 tracking-wider">Collect. Cook. Conquer.</p>
+          <p className="mt-2 text-sm text-[#8f98a6]">Collect ingredients. Find your next dish.</p>
         </Link>
 
         {/* Card */}
-        <div className="bg-[#151518]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+        <div className="surface p-6 backdrop-blur-xl sm:p-8">
           {/* Toggle */}
-          <div className="flex bg-[#0d0d0f] rounded-xl p-1 mb-8">
+          <div className="tab-strip mb-8 flex p-1">
             <button
               onClick={() => { setMode("login"); setError(""); }}
               className={`flex-1 py-3 rounded-lg text-sm font-bold uppercase tracking-widest transition-all ${
                 mode === "login"
-                  ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-lg"
-                  : "text-gray-500 hover:text-gray-300"
+                  ?                   "bg-[#e77a9b] text-[#230f19] shadow-lg"
+                  : "text-[#8f98a6] hover:text-[#f7f3eb]"
               }`}
             >
               Sign In
@@ -68,8 +69,8 @@ export default function AuthPage() {
               onClick={() => { setMode("register"); setError(""); }}
               className={`flex-1 py-3 rounded-lg text-sm font-bold uppercase tracking-widest transition-all ${
                 mode === "register"
-                  ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-lg"
-                  : "text-gray-500 hover:text-gray-300"
+                  ?                   "bg-[#e77a9b] text-[#230f19] shadow-lg"
+                  : "text-[#8f98a6] hover:text-[#f7f3eb]"
               }`}
             >
               Register
@@ -78,13 +79,13 @@ export default function AuthPage() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div>
-              <label className="text-xs uppercase tracking-widest text-gray-400 mb-2 block font-bold">Username</label>
+              <label className="mb-2 block text-xs font-bold tracking-widest text-[#a4acb8]">Username</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-[#0d0d0f] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
-                placeholder="Enter your username"
+                className="control-input w-full px-4 py-3.5 transition-all"
+                placeholder="Your collector name"
                 required
               />
             </div>
@@ -98,13 +99,13 @@ export default function AuthPage() {
                   transition={{ duration: 0.3 }}
                   className="overflow-hidden"
                 >
-                  <label className="text-xs uppercase tracking-widest text-gray-400 mb-2 block font-bold">Email</label>
+                  <label className="mb-2 block text-xs font-bold tracking-widest text-[#a4acb8]">Email</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-[#0d0d0f] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
-                    placeholder="your@email.com"
+                    className="control-input w-full px-4 py-3.5 transition-all"
+                    placeholder="you@example.com"
                     required={mode === "register"}
                   />
                 </motion.div>
@@ -112,13 +113,13 @@ export default function AuthPage() {
             </AnimatePresence>
 
             <div>
-              <label className="text-xs uppercase tracking-widest text-gray-400 mb-2 block font-bold">Password</label>
+              <label className="mb-2 block text-xs font-bold tracking-widest text-[#a4acb8]">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#0d0d0f] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
-                placeholder={mode === "register" ? "Min. 6 characters" : "Enter your password"}
+                className="control-input w-full px-4 py-3.5 transition-all"
+                placeholder={mode === "register" ? "At least 6 characters" : "Your password"}
                 required
               />
             </div>
@@ -127,7 +128,7 @@ export default function AuthPage() {
               <motion.p
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-lg py-2"
+                className="rounded-lg border border-[#e77a9b]/25 bg-[#e77a9b]/10 py-2 text-center text-sm text-[#f08aaa]"
               >
                 {error}
               </motion.p>
@@ -138,18 +139,18 @@ export default function AuthPage() {
               disabled={loading}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold text-lg uppercase tracking-widest shadow-[0_0_30px_rgba(219,39,119,0.3)] hover:shadow-[0_0_40px_rgba(219,39,119,0.5)] transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+              className="brand-button w-full rounded-xl py-4 text-lg transition hover:shadow-[0_0_30px_rgba(231,122,155,0.3)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "..." : mode === "login" ? "Sign In" : "Create Account"}
             </motion.button>
           </form>
         </div>
 
-        <p className="text-center text-gray-600 text-sm mt-6">
+        <p className="mt-6 text-center text-sm text-[#687483]">
           {mode === "login" ? "Don't have an account? " : "Already have an account? "}
           <button
             onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}
-            className="text-purple-400 hover:text-purple-300 font-bold"
+            className="font-bold text-[#e77a9b] hover:text-[#f08aaa]"
           >
             {mode === "login" ? "Register" : "Sign In"}
           </button>
