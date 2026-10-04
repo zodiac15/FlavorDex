@@ -3,7 +3,7 @@ from pathlib import Path
 import sys
 
 from alembic import context
-from sqlalchemy import pool
+from sqlalchemy import pool, text
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -44,7 +44,15 @@ async def run_migrations_online() -> None:
         poolclass=pool.NullPool,
     )
     async with connectable.connect() as connection:
-        await connection.run_sync(run_sync_migrations)
+        uses_postgres = connection.dialect.name == "postgresql"
+        if uses_postgres:
+            await connection.execute(text("SELECT pg_advisory_lock(90421001, 1)"))
+            await connection.commit()
+        try:
+            await connection.run_sync(run_sync_migrations)
+        finally:
+            if uses_postgres:
+                await connection.execute(text("SELECT pg_advisory_unlock(90421001, 1)"))
     await connectable.dispose()
 
 
